@@ -1,0 +1,16 @@
+# Generated files across the client and future API tooling
+node_modules/
+dist/
+vendor/
+*.log
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.local
+# Local database backups and uploads
+*.sql.gz
+*.sql.zip
+api/storage/
+.DS_Store
+Thumbs.db
