@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { DashboardLayout, PublicLayout } from './components/Layouts'
 import { initialAnimals } from './data/animals'
-import { About, Contact, Landing, Login, NotFound } from './pages/Public'
+import { About, Contact, Login, NotFound } from './pages/Public'
+import Landing from './pages/Landing'
 import {
   AnimalList,
   AnimalProfile,
@@ -13,6 +14,8 @@ import {
 import './App.css'
 
 export default function App() {
+  // Phase 1 uses fictional records in memory; changes reset on refresh.
+  // No database persistence or authenticated session is implemented yet.
   const [animals, setAnimals] = useState(initialAnimals)
   function addAnimal(animal) {
     setAnimals((current) => [animal, ...current])

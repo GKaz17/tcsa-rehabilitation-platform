@@ -9,7 +9,8 @@ import {
 import { AnimalTable, PageHeader, Status } from '../components/ui'
 import { statuses } from '../data/animals'
 
-const demoDate = '2026-10-04'
+// Fixed fixture date for the local prototype; use the live care date with the API.
+const careDate = '2026-10-04'
 
 export function Overview() {
   const { animals } = useOutletContext()
@@ -17,7 +18,7 @@ export function Overview() {
   return (
     <>
       <PageHeader
-        eyebrow="Sunday, 04 October 2026 · Demo day"
+        eyebrow="Sunday, 04 October 2026"
         title="Today, in care."
         description="A clear view of the animals and the moments that matter."
         action={
@@ -58,7 +59,7 @@ export function Overview() {
               <p className="eyebrow">A little attention goes a long way</p>
               <h2>Care schedule</h2>
             </div>
-            <span className="status green">Demo day</span>
+            <span className="status green">Today</span>
           </div>
           <ul className="care-list">
             {active
@@ -91,9 +92,6 @@ export function Overview() {
           <Link className="button secondary" to="/dashboard/animals">
             View all animals →
           </Link>
-          <div className="note">
-            All records and care times in this preview are fictional.
-          </div>
         </section>
       </div>
       <section className="card">
@@ -185,7 +183,7 @@ export function AnimalProfile() {
       <>
         <PageHeader
           title="Animal record not found"
-          description="This record may be unavailable, or a demo record may have reset on refresh."
+          description="Return to the animal list to find another record."
         />
         <Link className="button accent" to="/dashboard/animals">
           Back to animals
@@ -205,7 +203,7 @@ export function AnimalProfile() {
       />
       {state?.created ? (
         <p className="success-message" role="status">
-          Mock animal record added. This record will reset on refresh.
+          Animal record added.
         </p>
       ) : null}
       <div className="grid overview-columns">
@@ -262,11 +260,12 @@ export function NewAnimal() {
       if (!values[field])
         nextErrors[field] = 'Enter a value containing more than spaces.'
     }
-    if (values.admitted > demoDate)
-      nextErrors.admitted = 'Admission cannot be after the demo day.'
+    if (values.admitted > careDate)
+      nextErrors.admitted = 'Choose a date on or before the current care date.'
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return
-    const id = `TCSA-DEMO-${crypto.randomUUID().slice(0, 8)}`
+    // Records live in memory until the PHP/MySQL slice; refresh resets them.
+    const id = `TCSA-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
     addAnimal({
       ...values,
       id,
@@ -279,7 +278,7 @@ export function NewAnimal() {
     <>
       <PageHeader
         title="A new journey begins."
-        description="Create a mock intake record. Changes stay in this session and reset on refresh."
+        description="Record an animal’s details and initial care needs."
       />
       <form className="card intake-form" onSubmit={submit}>
         <h2>Animal details</h2>
@@ -312,8 +311,8 @@ export function NewAnimal() {
             <input
               type="date"
               name="admitted"
-              defaultValue={demoDate}
-              max={demoDate}
+              defaultValue={careDate}
+              max={careDate}
               required
               aria-invalid={Boolean(errors.admitted)}
               aria-describedby={errors.admitted ? 'admitted-error' : undefined}
@@ -360,7 +359,7 @@ export function NewAnimal() {
             Cancel
           </Link>
           <button className="button primary" type="submit">
-            Add mock animal →
+            Add animal →
           </button>
         </div>
       </form>
@@ -369,12 +368,14 @@ export function NewAnimal() {
 }
 
 export function Reports() {
+  // Counts derive from local fixtures. Live data, date filters and exports follow
+  // the PHP/MySQL animal-management slice.
   const { animals } = useOutletContext()
   return (
     <>
       <PageHeader
         title="Care, in perspective."
-        description="A snapshot of the current fictional records, including any animals added in this session."
+        description="Track progress through treatment, rehabilitation and release."
       />
       <section className="card">
         <div className="section-heading">
@@ -400,10 +401,6 @@ export function Reports() {
             )
           })}
         </div>
-        <p className="note">
-          Live reporting, date-range filters and exports will follow after the
-          PHP/MySQL animal-management slice.
-        </p>
       </section>
     </>
   )

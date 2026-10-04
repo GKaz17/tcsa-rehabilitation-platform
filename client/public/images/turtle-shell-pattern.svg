@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 720" fill="none">
+  <!-- Irregular shell scutes: sparse, offset clusters for decorative masks. -->
+  <g stroke="white" stroke-width="2.5" stroke-linejoin="round">
+    <path d="M28 27 88 12 129 59 105 119 46 132 8 85Z"/>
+    <path d="M35 37 83 24 116 62 97 108 50 119 20 82Z" fill="white" fill-opacity=".32" stroke="none"/>
+    <path d="M158 98 193 88 221 119 209 152 172 164 145 136Z"/>
+    <path d="M163 107 191 99 209 121 200 143 174 152 157 132Z" fill="white" fill-opacity=".22" stroke="none"/>
+    <path d="M53 221 91 201 125 224 122 268 79 282 45 259Z" fill="white" fill-opacity=".18"/>
+    <path d="M173 281 204 274 225 299 213 329 184 334 163 313Z"/>
+    <path d="M15 370 77 343 130 386 115 447 52 469 2 421Z"/>
+    <path d="M24 378 75 356 117 389 104 438 54 454 15 418Z" fill="white" fill-opacity=".28" stroke="none"/>
+    <path d="M161 477 194 461 226 484 223 519 188 534 158 511Z" fill="white" fill-opacity=".16"/>
+    <path d="M72 569 101 562 124 585 114 616 84 620 64 597Z"/>
+    <path d="M148 633 174 619 197 637 193 665 167 676 144 657Z" fill="white" fill-opacity=".2"/>
+  </g>
+</svg>

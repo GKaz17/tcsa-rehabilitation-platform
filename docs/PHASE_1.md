@@ -1,5 +1,8 @@
 # Phase 1 checkpoint — 4 October 2026
 
+This records the initial Phase 1 checkpoint. The reviewed landing-page
+restoration and screenshot asset limitations are documented in `LANDING_REVIEW.md`.
+
 ## Source and baseline
 
 Read PROJECT_NODE.md, CURRENT_STATUS.md and CODEX_BUILD_SPEC.md from the canonical

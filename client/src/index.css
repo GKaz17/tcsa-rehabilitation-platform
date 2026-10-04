@@ -1,36 +1,8 @@
+@import './styles/tokens.css';
+@import './styles/shared.css';
+
 :root {
-  --background: #123e35;
-  --surface: #ffffff;
-  --text: #173c33;
-  --muted: #53685f;
-  --pale: #dfeccb;
-  --border: #dde7dd;
-  --green: #c9d89b;
-  --orange: #f3a36a;
-  --success: #25604b;
-  --warning: #8c3c12;
-  --error: #9d2525;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-12: 48px;
-  --radius-small: 8px;
-  --radius-medium: 16px;
-  --radius-large: 24px;
-  --radius-pill: 999px;
-  --shadow-green-low: 0 4px 16px #082a2426;
-  --shadow-green-high: 0 16px 40px #061f1a40;
-  --shadow-orange-low: 0 8px 24px #ef9f6126;
-  --font-display: clamp(2.8rem, 6vw, 5.6rem);
-  --font-title: clamp(2rem, 3vw, 3rem);
-  --font-section: 1.35rem;
-  --font-body: 1rem;
-  --font-label: 0.875rem;
-  --font-caption: 0.75rem;
-  font-family: 'Segoe UI', Arial, sans-serif;
+  font-family: var(--font-family-body);
   font-size: 16px;
   line-height: 1.55;
   color: var(--text);
@@ -44,7 +16,7 @@
 }
 body {
   margin: 0;
-  min-width: 320px;
+  min-width: 0;
 }
 a {
   color: inherit;
@@ -61,13 +33,8 @@ button,
   cursor: pointer;
 }
 :focus-visible {
-  outline: 3px solid #ab501b;
+  outline: 3px solid var(--focus-ring);
   outline-offset: 4px;
-}
-.sidebar :focus-visible,
-.public-nav :focus-visible,
-.light-link:focus-visible {
-  outline-color: var(--orange);
 }
 h1,
 h2,
@@ -112,18 +79,19 @@ label {
 input,
 select,
 textarea {
+  --focus-ring: var(--focus-on-light);
   width: 100%;
   min-width: 0;
   padding: var(--space-3) var(--space-4);
   color: var(--text);
   background: var(--surface);
-  border: 1px solid #8d9f92;
+  border: 1px solid var(--input-border);
   border-radius: var(--radius-small);
   font-weight: 400;
 }
 input,
 select {
-  min-height: 48px;
+  min-height: var(--control-height);
 }
 textarea {
   resize: vertical;
@@ -141,7 +109,9 @@ button:disabled {
   top: -80px;
   left: 16px;
   padding: 12px 20px;
-  background: white;
+  background: var(--surface);
+  color: var(--text);
+  --focus-ring: var(--focus-on-light);
   z-index: 10;
 }
 .skip-link:focus {

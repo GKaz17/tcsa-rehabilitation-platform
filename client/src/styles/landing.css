@@ -1,0 +1,335 @@
+/* Landing-only composition;
+colors, cards and controls use global tokens. */
+.tcsa-landing {
+  color: var(--text-on-dark);
+}
+/* Decorative masks remain behind the page, outside interactive content. */
+.landing-site {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+}
+.landing-site::before,
+.landing-site::after {
+  content: '';
+  position: absolute;
+  top: 140px;
+  bottom: 0;
+  width: clamp(32px, calc(25% - 270px), 240px);
+  background: var(--green);
+  opacity: 0.2;
+  mask-image: url('/images/turtle-shell-pattern.svg');
+  mask-size: 190px 570px;
+  mask-repeat: repeat-y;
+  pointer-events: none;
+  z-index: -1;
+}
+.landing-site::before {
+  left: 0;
+  mask-position: right top;
+}
+.landing-site::after {
+  right: 0;
+  mask-position: left -210px;
+  transform: scaleX(-1);
+  opacity: 0.16;
+}
+/* Split the difference between the original 1240px cap and full-width layout. */
+.public-nav.landing-container,
+.public-main.landing-container,
+.public-footer.landing-container {
+  max-width: calc(50% + 620px);
+  padding-inline: clamp(20px, 2.5vw, 40px);
+}
+.conservation-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: var(--radius-large);
+  min-height: 600px;
+  display: flex;
+  align-items: end;
+  background: var(--background-raised);
+  box-shadow: var(--shadow-green-high);
+}
+.hero-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+.conservation-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(0deg, var(--background-raised) 0%, transparent 95%);
+}
+.conservation-intro {
+  padding: clamp(24px, 5vw, 64px);
+  max-width: 850px;
+}
+.conservation-intro h1 {
+  font-size: var(--font-display);
+}
+.conservation-intro > p:not(.eyebrow) {
+  max-width: 480px;
+  color: var(--muted-on-dark);
+}
+.landing-section {
+  padding-block: clamp(40px, 6vw, 72px);
+  scroll-margin-top: 24px;
+}
+.landing-heading {
+  position: relative;
+  isolation: isolate;
+  margin-bottom: var(--space-8);
+}
+.landing-heading h2, .partner-column > h2, .landing-contact h2 {
+  font-size: var(--font-title);
+}
+.landing-heading .shell-accent {
+  position: absolute;
+  top: -24px;
+  right: 0;
+  width: 220px;
+  height: 135px;
+  background: var(--green);
+  mask: url('/images/turtle-shell-pattern.svg') left top / 240px 720px no-repeat;
+  opacity: 0.28;
+  z-index: -1;
+  pointer-events: none;
+}
+.tcsa-landing .card {
+  color: var(--text);
+  padding: var(--space-8);
+}
+.tcsa-landing .card h3 {
+  font-size: var(--font-section);
+}
+.tcsa-landing .card p:last-child {
+  margin-bottom: 0;
+}
+.conservation-mission {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  max-width: 850px;
+  margin: var(--space-8) auto 0;
+  padding: var(--space-6);
+  border-block: 1px solid var(--border-on-dark);
+}
+.conservation-mission span {
+  color: var(--orange);
+  font-size: 3rem;
+}
+.conservation-mission p {
+  margin: 0;
+  font-size: 1.1rem;
+}
+.reptile-gallery {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+.reptile-gallery img {
+  display: block;
+  width: 100%;
+  height: clamp(200px, 19vw, 340px);
+  object-fit: cover;
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-green-low);
+}
+.donation-details {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: 0;
+}
+.donation-details > div {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: var(--space-4);
+}
+.donation-details dt {
+  margin: 0;
+  font-size: var(--font-label);
+}
+.donation-details dd {
+  font-size: var(--font-body);
+  font-weight: 600;
+}
+.rescue-roast {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 32%);
+  align-items: center;
+  gap: var(--space-8);
+  margin-bottom: var(--space-6);
+}
+.tcsa-landing .rescue-roast h3 {
+  font-size: var(--font-title);
+}
+.rescue-roast img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-medium);
+}
+.rescue-roast .button {
+  margin-top: var(--space-2);
+}
+.tortoise-food {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+.tortoise-food p {
+  max-width: 55ch;
+}
+.partner-section {
+  padding-top: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(32px, 7vw, 96px);
+}
+.partner-column {
+  min-width: 0;
+}
+.partner-column > h2 {
+  margin-bottom: var(--space-8);
+}
+.endorsement-frame {
+  padding: var(--space-4);
+  max-width: 440px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-green-low);
+}
+.endorsement-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.sponsor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  max-width: 360px;
+}
+.sponsor-grid img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-small);
+  background: var(--surface);
+  box-shadow: var(--shadow-green-low);
+}
+.partner-column > p {
+  color: var(--muted-on-dark);
+}
+.landing-contact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-8);
+  padding: clamp(24px, 5vw, 48px);
+  border-radius: var(--radius-large);
+  border: 1px solid var(--border-on-dark);
+  background: var(--background-raised);
+  scroll-margin-top: 24px;
+}
+.turtle-staff-entry {
+  position: relative;
+  width: 170px;
+  flex-shrink: 0;
+}
+.turtle-staff-entry img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-medium);
+}
+.turtle-tail-entry {
+  position: absolute;
+  left: 84.2%;
+  top: 62.4%;
+  width: 12%;
+  height: 10%;
+  clip-path: polygon(0 0, 100% 70%, 4% 100%);
+}
+.turtle-tail-entry:hover {
+  background: var(--background);
+  opacity: 0.15;
+}
+.turtle-tail-entry:focus-visible {
+  background: var(--background);
+  box-shadow: inset 0 0 0 3px var(--orange);
+  opacity: 1;
+  outline: none;
+}
+.contact-links {
+  display: grid;
+  gap: var(--space-4);
+}
+.contact-links a {
+  overflow-wrap: anywhere;
+}
+.contact-links span {
+  display: block;
+  color: var(--muted-on-dark);
+  font-size: var(--font-label);
+  margin-bottom: var(--space-1);
+}
+@media (max-width: 760px) {
+  .landing-site::before,
+  .landing-site::after {
+    width: 20px;
+    opacity: 0.12;
+  }
+  .conservation-hero {
+    min-height: 570px;
+  }
+  .conservation-intro h1 {
+    font-size: clamp(2.4rem, 9vw, 4rem);
+  }
+  .tcsa-landing .card {
+    padding: var(--space-6);
+  }
+  .reptile-gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .reptile-gallery img {
+    height: 180px;
+  }
+  .rescue-roast, .partner-section {
+    grid-template-columns: 1fr;
+  }
+  .rescue-roast img {
+    max-width: 280px;
+    justify-self: center;
+  }
+  .tortoise-food, .landing-contact {
+    flex-direction: column;
+    align-items: start;
+  }
+  .tortoise-food .button {
+    white-space: normal;
+  }
+  .donation-details > div {
+    grid-template-columns: 110px 1fr;
+    gap: var(--space-2);
+  }
+  .conservation-mission {
+    padding-inline: 0;
+    gap: var(--space-4);
+  }
+  .landing-heading .shell-accent {
+    width: 120px;
+    mask-size: 160px 480px;
+    opacity: 0.2;
+  }
+}

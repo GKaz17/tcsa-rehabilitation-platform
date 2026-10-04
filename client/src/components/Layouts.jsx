@@ -11,32 +11,29 @@ function RouteFocus() {
 }
 
 export function PublicLayout() {
+  const isLanding = useLocation().pathname === '/'
   return (
-    <>
+    <div className={isLanding ? 'public-site landing-site' : 'public-site'}>
       <RouteFocus />
       <a className="skip-link" href="#main">
         Skip to content
       </a>
-      <header className="public-nav">
+      <header className={`public-nav${isLanding ? ' landing-container' : ''}`}>
         <Link className="brand" to="/">
           TCSA<span>Rehabilitation & care</span>
         </Link>
         <nav aria-label="Public navigation">
-          <NavLink to="/about">About</NavLink>
-          <NavLink to="/contact">Contact</NavLink>
-          <Link className="button primary" to="/login">
-            Staff workspace →
-          </Link>
+          {isLanding ? <><a href="#about-us">About</a><a href="#support-us">Support us</a><a href="#contact-dirk">Contact</a></> : <><NavLink to="/about">About</NavLink><NavLink to="/contact">Contact</NavLink></>}
         </nav>
       </header>
-      <main id="main" className="public-main">
+      <main id="main" className={`public-main${isLanding ? ' landing-container' : ''}`}>
         <Outlet />
       </main>
-      <footer className="public-footer">
-        TCSA · Rehabilitation platform{' '}
-        <span>Phase 1 prototype · fictional data</span>
+      <footer className={`public-footer${isLanding ? ' landing-container' : ''}`}>
+        TCSA · Rehabilitation & care
+        <span>Care, connected.</span>
       </footer>
-    </>
+    </div>
   )
 }
 
@@ -87,25 +84,18 @@ export function DashboardLayout({ animals, addAnimal }) {
         </nav>
         <div className="sidebar-note">
           <span className="presence" /> Care starts with connection.
-          <small>
-            Mock workspace
-            <br />
-            Changes reset on refresh.
-          </small>
         </div>
       </aside>
       <div className="workspace">
         <div className="workspace-bar">
-          <span>
-            Staff workspace / <strong>Demo</strong>
-          </span>
-          <span className="demo-badge">Mock data</span>
+          <span>Staff workspace</span>
+          <span className="workspace-label">Rehabilitation & care</span>
         </div>
         <main id="main">
           <Outlet context={{ animals, addAnimal }} />
         </main>
         <footer className="workspace-footer">
-          Every record is a step toward recovery.<span>TCSA · Group 11</span>
+          Every record is a step toward recovery.<span>TCSA</span>
         </footer>
       </div>
     </div>
