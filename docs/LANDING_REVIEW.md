@@ -1,5 +1,8 @@
 # Landing page milestone - 5 October 2026
 
+This records the reviewed `22d7fc7` milestone. The subsequent colour,
+font, route and tail-target corrections are documented in `FIGMA_PARITY_PATCH.md`.
+
 The landing page follows the original TCSA content journey: pond hero, About Us,
 four-photo reptile gallery, Support Us, endorsement/sponsors, and contact details.
 Its colors, cards, typography and controls use the same global

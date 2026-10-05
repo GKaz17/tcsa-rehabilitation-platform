@@ -2,6 +2,8 @@
 
 This records the initial Phase 1 checkpoint. The reviewed landing-page
 restoration and screenshot asset limitations are documented in `LANDING_REVIEW.md`.
+The correction of the approved fonts, colours and reviewed screens is
+documented in `FIGMA_PARITY_PATCH.md`; this file retains the original checkpoint.
 
 ## Source and baseline
 

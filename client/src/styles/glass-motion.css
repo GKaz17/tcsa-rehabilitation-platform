@@ -1,0 +1,209 @@
+/* Inspired by React Bits Glass Surface and Fade Content. Native CSS/WAAPI
+   keeps the effect light; frosted surfaces always retain a readable base. */
+body {
+  background:
+    radial-gradient(ellipse at 12% 2%, #c9d89b12, transparent 38rem),
+    radial-gradient(ellipse at 94% 20%, #f3a36a0a, transparent 40rem);
+}
+.public-nav,
+.page-header,
+.landing-contact {
+  background: var(--background-raised);
+  border: 1px solid var(--glass-edge);
+  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--shadow-green-low);
+}
+.public-nav {
+  position: relative;
+  width: calc(100% - clamp(40px, 5vw, 80px));
+  margin-top: var(--space-4);
+  padding-block: var(--space-6);
+  border-radius: var(--radius-large);
+}
+.public-nav.landing-container {
+  max-width: calc(50% + 620px - clamp(40px, 5vw, 80px));
+  padding-bottom: 52px;
+}
+.public-nav nav {
+  gap: var(--space-3);
+}
+.public-nav nav > a {
+  padding-inline: var(--space-4);
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  transition: background var(--motion-fast), color var(--motion-fast);
+}
+.public-nav nav > a:hover,
+.public-nav nav > a:focus-visible {
+  background: var(--glass-highlight);
+  color: var(--pale);
+}
+.card {
+  box-shadow: inset 0 1px 0 #ffffffc0, var(--shadow-green-low);
+  transition: box-shadow 300ms var(--motion-ease), border-color 300ms;
+}
+.tcsa-landing .card:hover,
+.animal-card:hover {
+  border-color: var(--input-border);
+  box-shadow: inset 0 1px 0 #ffffffc0, 0 10px 28px #082a2433;
+}
+.button,
+.animal-card-open {
+  transition: transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast), background var(--motion-fast);
+}
+.button:hover,
+.animal-card-open:hover {
+  transform: translateY(-2px);
+}
+.button:active,
+.animal-card-open:active {
+  transform: translateY(0);
+}
+.conservation-intro > * {
+  animation: soft-arrival 700ms var(--motion-ease) both;
+}
+.conservation-intro > :nth-child(2) { animation-delay: 80ms; }
+.conservation-intro > :nth-child(3) { animation-delay: 160ms; }
+.conservation-intro > :nth-child(4) { animation-delay: 240ms; }
+.hero-photo {
+  animation: photo-settle 1200ms var(--motion-ease) both;
+}
+.nav-turtle-scene {
+  position: absolute;
+  left: var(--space-6);
+  right: var(--space-3);
+  bottom: 2px;
+  height: 44px;
+}
+.nav-turtle-track {
+  position: absolute;
+  inset: 0 56px 0 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.nav-turtle-track::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 7px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-edge), transparent);
+}
+/* The moving wrapper's width is the travel distance, leaving room for the
+   sprite at either end. Transforms run independently of React rendering. */
+.nav-turtle-traveller {
+  width: calc(100% - 56px);
+  height: 100%;
+  animation: turtle-stroll 52s linear infinite;
+}
+.nav-turtle-direction {
+  width: 56px;
+  height: 38px;
+  animation: turtle-turn 52s steps(1, end) infinite;
+}
+.nav-turtle-body {
+  width: 56px;
+  height: 38px;
+  animation: turtle-bob 1100ms ease-in-out infinite;
+}
+.nav-turtle-body svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.turtle-leg {
+  transform-box: fill-box;
+  transform-origin: center top;
+  animation: turtle-step 1100ms ease-in-out infinite alternate;
+}
+.turtle-leg-front,
+.turtle-leg-far {
+  animation-delay: -550ms;
+}
+.turtle-paused .nav-turtle-traveller,
+.turtle-paused .nav-turtle-direction,
+.turtle-paused .nav-turtle-body,
+.turtle-paused .turtle-leg {
+  animation-play-state: paused;
+}
+.nav-motion-toggle {
+  position: absolute;
+  right: 0;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: var(--muted-on-dark);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  transition: background var(--motion-fast);
+}
+.nav-motion-toggle:hover,
+.nav-motion-toggle:focus-visible {
+  background: var(--glass-highlight);
+  border-color: var(--glass-edge);
+}
+.nav-motion-toggle svg { width: 14px; height: 14px; }
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .public-nav,
+  .page-header,
+  .landing-contact {
+    background: linear-gradient(135deg, var(--glass-highlight), transparent 65%), var(--glass-dark);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(130%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(130%);
+  }
+  .card {
+    background: var(--glass-light);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+}
+@keyframes soft-arrival {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes photo-settle {
+  from { transform: scale(1.035); }
+  to { transform: scale(1); }
+}
+@keyframes turtle-stroll {
+  0%, 4% { transform: translateX(0); }
+  46%, 54% { transform: translateX(100%); }
+  96%, 100% { transform: translateX(0); }
+}
+@keyframes turtle-turn {
+  0% { transform: scaleX(1); }
+  50% { transform: scaleX(-1); }
+}
+@keyframes turtle-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+}
+@keyframes turtle-step {
+  from { transform: rotate(-10deg); }
+  to { transform: rotate(12deg); }
+}
+@media (max-width: 760px) {
+  .public-nav {
+    padding-inline: var(--space-4);
+    gap: var(--space-3);
+  }
+  .public-nav nav { gap: var(--space-1); }
+  .public-nav nav > a { padding-inline: var(--space-3); }
+  .nav-turtle-scene { left: var(--space-4); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .conservation-intro > *,
+  .hero-photo,
+  .nav-turtle-traveller,
+  .nav-turtle-direction,
+  .nav-turtle-body,
+  .turtle-leg {
+    animation: none !important;
+  }
+  .button:hover,
+  .animal-card-open:hover { transform: none; }
+  .nav-motion-toggle { display: none; }
+}

@@ -1,183 +1,18 @@
 import { useState } from 'react'
-import {
-  Link,
-  useLocation,
-  useNavigate,
-  useOutletContext,
-  useParams,
-} from 'react-router-dom'
-import { AnimalTable, PageHeader, Status } from '../components/ui'
+import { Link, useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom'
+import { PageHeader, Status } from '../components/ui'
 import { statuses } from '../data/animals'
-
-// Fixed fixture date for the local prototype; use the live care date with the API.
-const careDate = '2026-10-04'
-
-export function Overview() {
-  const { animals } = useOutletContext()
-  const active = animals.filter((animal) => animal.status !== 'Released')
-  return (
-    <>
-      <PageHeader
-        eyebrow="Sunday, 04 October 2026"
-        title="Today, in care."
-        description="A clear view of the animals and the moments that matter."
-        action={
-          <Link className="button accent" to="/dashboard/animals/new">
-            + Add animal
-          </Link>
-        }
-      />
-      <div className="grid three stats">
-        {[
-          [
-            'Animals in care',
-            active.length,
-            'Across treatment and rehabilitation',
-          ],
-          [
-            'In treatment',
-            animals.filter((a) => a.status === 'In treatment').length,
-            'Receiving dedicated support',
-          ],
-          [
-            'Ready for release',
-            animals.filter((a) => a.status === 'Ready for release').length,
-            'A new beginning ahead',
-          ],
-        ].map(([label, value, caption]) => (
-          <article className="card stat" key={label}>
-            <p>{label}</p>
-            <strong>{value.toString().padStart(2, '0')}</strong>
-            <small>{caption}</small>
-          </article>
-        ))}
-      </div>
-      <div className="grid overview-columns">
-        <section className="card">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">A little attention goes a long way</p>
-              <h2>Care schedule</h2>
-            </div>
-            <span className="status green">Today</span>
-          </div>
-          <ul className="care-list">
-            {active
-              .filter((a) => a.nextCare)
-              .map((a) => (
-                <li key={a.id}>
-                  <span className="animal-initial" aria-hidden="true">
-                    {a.name[0]}
-                  </span>
-                  <div>
-                    <Link to={`/dashboard/animals/${a.id}`}>{a.name}</Link>
-                    <small>{a.nextCare}</small>
-                  </div>
-                  <Status value={a.status} />
-                </li>
-              ))}
-          </ul>
-        </section>
-        <section className="card orange-shadow">
-          <p className="eyebrow">Recovery in focus</p>
-          <h2>
-            One step closer
-            <br />
-            to the wild.
-          </h2>
-          <p>
-            Follow each animal’s progress, keep observations together and make
-            the next care decision with context.
-          </p>
-          <Link className="button secondary" to="/dashboard/animals">
-            View all animals →
-          </Link>
-        </section>
-      </div>
-      <section className="card">
-        <div className="section-heading">
-          <h2>Animals in care</h2>
-          <Link to="/dashboard/animals">All records →</Link>
-        </div>
-        <AnimalTable animals={active.slice(0, 4)} />
-      </section>
-    </>
-  )
-}
-
-export function AnimalList() {
-  const { animals } = useOutletContext()
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState('All statuses')
-  const query = search.trim().toLowerCase()
-  const filtered = animals.filter(
-    (a) =>
-      `${a.name} ${a.species} ${a.id}`.toLowerCase().includes(query) &&
-      (status === 'All statuses' || a.status === status),
-  )
-  function reset() {
-    setSearch('')
-    setStatus('All statuses')
-  }
-  return (
-    <>
-      <PageHeader
-        title="Every animal. One workspace."
-        description="Find a record, follow progress and keep care connected."
-        action={
-          <Link className="button accent" to="/dashboard/animals/new">
-            + Add animal
-          </Link>
-        }
-      />
-      <section className="card">
-        <div className="filters">
-          <label>
-            Search animals
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Name, species or record ID"
-              type="search"
-            />
-          </label>
-          <label>
-            Care status
-            <select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option>All statuses</option>
-              {statuses.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            </select>
-          </label>
-          <button className="button secondary" onClick={reset}>
-            Reset filters
-          </button>
-        </div>
-        <p className="result-count" role="status">
-          {filtered.length} {filtered.length === 1 ? 'record' : 'records'} found
-        </p>
-        {filtered.length ? (
-          <AnimalTable animals={filtered} />
-        ) : (
-          <div className="empty">
-            <h2>No animals match these filters.</h2>
-            <p>Try a different name or care status.</p>
-            <button className="button secondary" onClick={reset}>
-              Clear filters
-            </button>
-          </div>
-        )}
-      </section>
-    </>
-  )
-}
-
+import { careDate, priorityTasks } from '../data/tasks'
 export function AnimalProfile() {
-  const { animals } = useOutletContext()
+  const { animals, tasks } = useOutletContext()
   const { id } = useParams()
   const { state } = useLocation()
   const animal = animals.find((a) => a.id === id)
+  const animalTasks = tasks.filter((task) => task.animalId === id)
+  const nextTask = priorityTasks(animalTasks.filter((task) => !task.completed))[0]
+  const nextCare = animalTasks.length
+    ? nextTask ? `${nextTask.time} · ${nextTask.title}` : null
+    : animal?.nextCare
   if (!animal)
     return (
       <>
@@ -224,7 +59,7 @@ export function AnimalProfile() {
             </div>
             <div>
               <dt>Next care</dt>
-              <dd>{animal.nextCare || 'No care scheduled'}</dd>
+              <dd>{nextCare || 'No care scheduled'}</dd>
             </div>
           </dl>
           <h3>Reason for admission</h3>

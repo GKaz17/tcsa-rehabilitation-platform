@@ -1,3 +1,4 @@
+@import './styles/fonts.css';
 @import './styles/tokens.css';
 @import './styles/shared.css';
 
@@ -43,22 +44,26 @@ p {
   margin: 0 0 var(--space-4);
 }
 h1 {
+  font-family: var(--font-family-display);
   overflow-wrap: anywhere;
   font-size: var(--font-title);
   line-height: 1.12;
-  letter-spacing: -0.04em;
-  font-weight: 600;
+  letter-spacing: 0;
+  font-weight: 400;
 }
 h1:focus {
   outline: none;
 }
 h2 {
+  font-family: var(--font-family-heading);
   font-size: var(--font-section);
   line-height: 1.3;
   letter-spacing: -0.02em;
   font-weight: 600;
 }
 h3 {
+  font-family: var(--font-family-heading);
+  font-weight: 500;
   font-size: var(--font-body);
 }
 p {

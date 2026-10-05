@@ -71,6 +71,27 @@ colors, cards and controls use global tokens. */
   padding: clamp(24px, 5vw, 64px);
   max-width: 850px;
 }
+.conservation-hero > .rings {
+  position: absolute;
+  top: var(--space-8);
+  right: var(--space-8);
+  width: clamp(180px, 32vw, 430px);
+  opacity: 0.22;
+  pointer-events: none;
+  z-index: -1;
+}
+.landing-heading > .rings {
+  position: absolute;
+  top: -10px;
+  right: 110px;
+  width: 240px;
+  opacity: var(--pattern-opacity);
+  pointer-events: none;
+  z-index: -1;
+}
+.conservation-mission {
+  scroll-margin-top: var(--space-6);
+}
 .conservation-intro h1 {
   font-size: var(--font-display);
 }
@@ -255,21 +276,33 @@ colors, cards and controls use global tokens. */
 }
 .turtle-tail-entry {
   position: absolute;
-  left: 84.2%;
-  top: 62.4%;
-  width: 12%;
-  height: 10%;
-  clip-path: polygon(0 0, 100% 70%, 4% 100%);
+  left: calc(90% - 22px);
+  top: calc(67.4% - 22px);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-small);
 }
-.turtle-tail-entry:hover {
+.turtle-tail-entry::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 14px;
+  width: 20px;
+  height: 16px;
+  clip-path: polygon(0 0, 100% 70%, 4% 100%);
+  opacity: 0;
   background: var(--background);
+}
+.turtle-tail-entry:hover::after {
   opacity: 0.15;
 }
 .turtle-tail-entry:focus-visible {
-  background: var(--background);
-  box-shadow: inset 0 0 0 3px var(--orange);
-  opacity: 1;
-  outline: none;
+  outline: 3px solid var(--pale);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--background);
+}
+.turtle-tail-entry:focus-visible::after {
+  opacity: 0.2;
 }
 .contact-links {
   display: grid;
@@ -285,6 +318,12 @@ colors, cards and controls use global tokens. */
   margin-bottom: var(--space-1);
 }
 @media (max-width: 760px) {
+  .landing-heading > .rings {
+    width: 160px;
+    right: 0;
+    top: 12px;
+    opacity: 0.12;
+  }
   .landing-site::before,
   .landing-site::after {
     width: 20px;

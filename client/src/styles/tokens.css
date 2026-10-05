@@ -48,8 +48,17 @@
   --surface-neutral: #eef1ed;
   --text-neutral: #4d6057;
   --surface-avatar: #eff3e9;
-  --font-family-body: 'Segoe UI', Arial, sans-serif;
-  --font-family-accent: Georgia, serif;
+  --font-family-body: 'Instrument Sans', Arial, sans-serif;
+  --font-family-heading: 'Poppins', Arial, sans-serif;
+  --font-family-display: 'Londrina Solid', Arial, sans-serif;
+  --font-family-accent: var(--font-family-display);
   --control-height: 48px;
   --pattern-opacity: 0.15;
+  --glass-dark: #10362fc9;
+  --glass-light: #fffffff0;
+  --glass-edge: #dfeccb38;
+  --glass-highlight: #ffffff15;
+  --glass-blur: 18px;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-fast: 220ms;
 }

@@ -16,7 +16,7 @@ export const initialAnimals = [
     location: 'Care room A',
     carer: 'Thandi M.',
     reason: 'Shell injury following a roadside rescue.',
-    nextCare: '09:00 · Wound assessment',
+    nextCare: '09:00 · Scheduled medication',
     history: [
       {
         date: '2026-10-03',
@@ -31,29 +31,29 @@ export const initialAnimals = [
   {
     id: 'TCSA-002',
     name: 'Ember',
-    species: 'Barn owl',
+    species: 'Cape dwarf chameleon',
     status: 'Rehabilitation',
     admitted: '2026-09-22',
-    location: 'Aviary 02',
+    location: 'Habitat 02',
     carer: 'Alex R.',
-    reason: 'Recovering from a wing injury.',
-    nextCare: '10:30 · Flight observation',
+    reason: 'Recovering from a limb injury.',
+    nextCare: '10:30 · Progress photo',
     history: [
       {
         date: '2026-10-03',
-        note: 'Short flights completed. Continue supervised rehabilitation.',
+        note: 'Climbing steadily. Continue supervised rehabilitation.',
       },
     ],
   },
   {
     id: 'TCSA-003',
     name: 'Nala',
-    species: 'Duiker',
+    species: 'Leopard tortoise',
     status: 'Rehabilitation',
     admitted: '2026-09-18',
     location: 'Enclosure 04',
     carer: 'Thandi M.',
-    reason: 'Orphaned juvenile requiring supportive care.',
+    reason: 'Rescued juvenile requiring supportive care.',
     nextCare: '12:00 · Feeding review',
     history: [
       {
@@ -65,10 +65,10 @@ export const initialAnimals = [
   {
     id: 'TCSA-004',
     name: 'River',
-    species: 'Hadeda ibis',
+    species: 'Parrot-beaked tortoise',
     status: 'Ready for release',
     admitted: '2026-09-12',
-    location: 'Aviary 01',
+    location: 'Enclosure 01',
     carer: 'Alex R.',
     reason: 'Recovered from a leg injury.',
     nextCare: '14:00 · Release assessment',
@@ -82,13 +82,13 @@ export const initialAnimals = [
   {
     id: 'TCSA-005',
     name: 'Moss',
-    species: 'Hedgehog',
+    species: 'Angulate tortoise',
     status: 'In treatment',
     admitted: '2026-10-03',
     location: 'Care room B',
     carer: 'Sam K.',
     reason: 'Dehydration; admitted for observation.',
-    nextCare: '15:00 · Hydration review',
+    nextCare: '15:00 · Scheduled medication',
     history: [
       {
         date: '2026-10-03',
@@ -99,12 +99,12 @@ export const initialAnimals = [
   {
     id: 'TCSA-006',
     name: 'Sky',
-    species: 'Spotted eagle-owl',
+    species: 'Leopard tortoise',
     status: 'Released',
     admitted: '2026-08-28',
     location: 'Released',
     carer: 'Alex R.',
-    reason: 'Completed flight rehabilitation.',
+    reason: 'Completed rehabilitation following a shell injury.',
     nextCare: null,
     history: [
       {

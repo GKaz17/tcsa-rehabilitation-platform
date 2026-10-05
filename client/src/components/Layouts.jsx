@@ -1,12 +1,23 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import NavTurtle from './NavTurtle'
 
 function RouteFocus() {
-  const { pathname } = useLocation()
+  const { pathname, hash } = useLocation()
   useEffect(() => {
-    document.querySelector('h1')?.focus()
-    window.scrollTo(0, 0)
-  }, [pathname])
+    const target = hash ? document.getElementById(hash.slice(1)) : null
+    if (target) {
+      const heading = target.querySelector('h2') || target
+      heading.focus({ preventScroll: true })
+      target.scrollIntoView({
+        block: 'start',
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+      })
+    } else {
+      document.querySelector('h1')?.focus({ preventScroll: true })
+      window.scrollTo(0, 0)
+    }
+  }, [pathname, hash])
   return null
 }
 
@@ -23,8 +34,11 @@ export function PublicLayout() {
           TCSA<span>Rehabilitation & care</span>
         </Link>
         <nav aria-label="Public navigation">
-          {isLanding ? <><a href="#about-us">About</a><a href="#support-us">Support us</a><a href="#contact-dirk">Contact</a></> : <><NavLink to="/about">About</NavLink><NavLink to="/contact">Contact</NavLink></>}
+          <Link to="/#about-us">About</Link>
+          <Link to="/#support-us">Support us</Link>
+          <Link to="/#contact-dirk">Contact</Link>
         </nav>
+        {isLanding ? <NavTurtle /> : null}
       </header>
       <main id="main" className={`public-main${isLanding ? ' landing-container' : ''}`}>
         <Outlet />
@@ -37,7 +51,7 @@ export function PublicLayout() {
   )
 }
 
-export function DashboardLayout({ animals, addAnimal }) {
+export function DashboardLayout({ animals, addAnimal, tasks, completeTask }) {
   const [menuOpen, setMenuOpen] = useState(false)
   return (
     <div className="dashboard">
@@ -64,14 +78,14 @@ export function DashboardLayout({ animals, addAnimal }) {
         >
           <p className="eyebrow">Workspace</p>
           {[
-            ['/dashboard', 'Today', '01'],
+            ['/dashboard/today', 'Today', '01'],
             ['/dashboard/animals', 'Animals', '02'],
             ['/dashboard/reports', 'Reports', '03'],
           ].map(([url, label, number]) => (
             <NavLink
               key={url}
               to={url}
-              end={url === '/dashboard'}
+              end={url === '/dashboard/today'}
               onClick={() => setMenuOpen(false)}
             >
               <span aria-hidden="true">{number}</span>
@@ -92,7 +106,7 @@ export function DashboardLayout({ animals, addAnimal }) {
           <span className="workspace-label">Rehabilitation & care</span>
         </div>
         <main id="main">
-          <Outlet context={{ animals, addAnimal }} />
+          <Outlet context={{ animals, addAnimal, tasks, completeTask }} />
         </main>
         <footer className="workspace-footer">
           Every record is a step toward recovery.<span>TCSA</span>
