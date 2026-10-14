@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { DashboardLayout, PublicLayout } from './components/Layouts'
+import { AuthProvider, RequireStaff } from './auth/AuthContext'
+import SeoMetadata from './components/SeoMetadata'
 import { initialAnimals } from './data/animals'
 import { NotFound } from './pages/Public'
 import Login from './pages/Login'
@@ -17,9 +19,8 @@ import './App.css'
 import './styles/workspace.css'
 import './styles/glass-motion.css'
 
-export default function App() {
-  // Phase 1 uses fictional records in memory; changes reset on refresh.
-  // No database persistence or authenticated session is implemented yet.
+function StaffWorkspace() {
+  // Animal/task fixtures remain in memory. Unmounting at sign-out clears them.
   const [animals, setAnimals] = useState(initialAnimals)
   const [tasks, setTasks] = useState(initialTasks)
   function addAnimal(animal) {
@@ -28,8 +29,12 @@ export default function App() {
   function completeTask(id, completed) {
     setTasks((current) => updateTaskCompletion(current, id, completed))
   }
+  return <DashboardLayout animals={animals} addAnimal={addAnimal} tasks={tasks} completeTask={completeTask} />
+}
+
+export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter><SeoMetadata /><AuthProvider>
       <Routes>
         <Route element={<PublicLayout />}>
           <Route index element={<Landing />} />
@@ -42,10 +47,8 @@ export default function App() {
           <Route path="login" element={<Navigate to="/staff/login" replace />} />
           <Route path="*" element={<NotFound />} />
         </Route>
-        <Route
-          path="dashboard"
-          element={<DashboardLayout animals={animals} addAnimal={addAnimal} tasks={tasks} completeTask={completeTask} />}
-        >
+        <Route element={<RequireStaff />}>
+        <Route path="dashboard" element={<StaffWorkspace />}>
           <Route index element={<Navigate to="today" replace />} />
           <Route path="today" element={<Today />} />
           <Route path="animals" element={<Animals />} />
@@ -54,7 +57,8 @@ export default function App() {
           <Route path="reports" element={<Reports />} />
           <Route path="*" element={<NotFound />} />
         </Route>
+        </Route>
       </Routes>
-    </BrowserRouter>
+    </AuthProvider></BrowserRouter>
   )
 }

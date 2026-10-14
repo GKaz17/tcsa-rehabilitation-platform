@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import NavTurtle from './NavTurtle'
+import { useAuth } from '../auth/useAuth'
 
 function RouteFocus() {
   const { pathname, hash } = useLocation()
@@ -53,6 +54,16 @@ export function PublicLayout() {
 
 export function DashboardLayout({ animals, addAnimal, tasks, completeTask }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
+  const [signOutError, setSignOutError] = useState('')
+  const { user, signOut } = useAuth()
+  async function logout() {
+    setSigningOut(true)
+    setSignOutError('')
+    try { await signOut() }
+    catch (error) { setSignOutError(error.message) }
+    finally { setSigningOut(false) }
+  }
   return (
     <div className="dashboard">
       <RouteFocus />
@@ -103,8 +114,12 @@ export function DashboardLayout({ animals, addAnimal, tasks, completeTask }) {
       <div className="workspace">
         <div className="workspace-bar">
           <span>Staff workspace</span>
-          <span className="workspace-label">Rehabilitation & care</span>
+          <div className="staff-session-controls">
+            <span className="staff-user" title={user.email}>{user.name}</span>
+            <button className="button secondary" type="button" disabled={signingOut} onClick={logout}>{signingOut ? 'Signing out…' : 'Sign out'}</button>
+          </div>
         </div>
+        {signOutError ? <p className="sign-out-error" role="alert">{signOutError}</p> : null}
         <main id="main">
           <Outlet context={{ animals, addAnimal, tasks, completeTask }} />
         </main>

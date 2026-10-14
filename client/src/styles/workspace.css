@@ -301,6 +301,25 @@
 .menu-toggle {
   min-height: 44px;
 }
+.staff-session-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.staff-user {
+  max-width: 16ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.staff-session-controls .button {
+  min-height: 44px;
+  white-space: nowrap;
+}
+.sign-out-error { margin: 0 var(--space-6) var(--space-4); color: var(--pale); }
+.auth-state { padding-block: var(--space-8); }
+.button:disabled { cursor: wait; opacity: 0.7; }
 @media (max-width: 1100px) {
   .task-row {
     grid-template-columns: 46px 100px minmax(0, 1fr) 130px;
