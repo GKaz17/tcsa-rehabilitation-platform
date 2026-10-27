@@ -1,0 +1,8 @@
+**
+!Dockerfile
+!public/
+!public/**
+!api/
+!api/**
+!aws/
+!aws/**

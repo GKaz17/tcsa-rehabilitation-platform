@@ -1,0 +1,12 @@
+# Deployment and checksum files must retain Unix line endings on Windows.
+*.sh text eol=lf
+*.py text eol=lf
+*.sql text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.conf text eol=lf
+*.ini text eol=lf
+*.pem text eol=lf
+Dockerfile* text eol=lf
+SHA256SUMS* text eol=lf
