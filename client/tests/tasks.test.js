@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { initialAnimals } from '../src/data/animals.js'
-import { initialTasks, priorityTasks, taskCounts, taskStatus, updateTaskCompletion } from '../src/data/tasks.js'
+import { initialTasks, taskCounts as countAt, taskStatus as statusAt, priorityTasks as sortAt, todayTasks, updateTaskCompletion } from '../src/data/tasks.js'
+const clock = { date: '2026-10-05', time: '10:00' }
+const taskCounts = (tasks) => countAt(tasks, clock)
+const taskStatus = (task) => statusAt(task, clock)
+const priorityTasks = (tasks, filter) => sortAt(tasks, filter, clock)
 
 test('completion and undo update counts without losing or mutating tasks', () => {
   const before = structuredClone(initialTasks)
@@ -29,4 +33,17 @@ test('all task categories are represented and link to existing animal records', 
   const allCompleted = initialTasks.map((task) => ({ ...task, completed: true }))
   assert.deepEqual(taskCounts(allCompleted), { Overdue: 0, Upcoming: 0, Completed: 6, Total: 6 })
   assert.deepEqual(taskCounts([]), { Overdue: 0, Upcoming: 0, Completed: 0, Total: 0 })
+})
+
+test('today includes carried overdue work and completions today, but not future or older completed tasks', () => {
+  const tasks = [
+    { id: 'overdue', date: '2026-10-04', time: '23:59', completed: false },
+    { id: 'today', date: clock.date, time: '10:30', completed: false },
+    { id: 'future', date: '2026-10-06', time: '08:00', completed: false },
+    { id: 'done', date: '2026-10-04', time: '09:00', completed: true, completedAt: clock.date },
+    { id: 'old', date: '2026-10-04', time: '09:00', completed: true, completedAt: '2026-10-04' },
+  ]
+  const visible = todayTasks(tasks, clock)
+  assert.deepEqual(visible.map((task) => task.id), ['overdue', 'today', 'done'])
+  assert.deepEqual(taskCounts(visible), { Overdue: 1, Upcoming: 1, Completed: 1, Total: 3 })
 })

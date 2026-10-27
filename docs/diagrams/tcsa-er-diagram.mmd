@@ -1,0 +1,90 @@
+erDiagram
+    direction LR
+    staff_users {
+        BIGINT_UNSIGNED id PK "required"
+        VARCHAR(254) email UK "required"
+        VARCHAR(80) display_name "required"
+        VARCHAR(255) password_hash "required"
+        TINYINT_UNSIGNED is_active "required"
+        DATETIME(6) created_at "required"
+        DATETIME(6) updated_at "required"
+        DATETIME(6) last_login_at "nullable"
+        TINYINT_UNSIGNED must_change_password "required"
+        INT_UNSIGNED password_version "required"
+    }
+    auth_login_limits {
+        CHAR(64) bucket_key PK "required"
+        BIGINT_UNSIGNED window_start "required"
+        INT_UNSIGNED failures "required"
+    }
+    schema_migrations {
+        VARCHAR(80) version PK "required"
+        DATETIME(6) applied_at "required"
+    }
+    care_statuses {
+        VARCHAR(24) code PK "required"
+        VARCHAR(40) label UK "required"
+        TINYINT_UNSIGNED display_order UK "required"
+    }
+    animals {
+        BIGINT_UNSIGNED id PK "required"
+        VARCHAR(40) record_code UK "required"
+        VARCHAR(80) name "required"
+        VARCHAR(80) species "required"
+        DATETIME(6) created_at "required"
+        DATETIME(6) updated_at "required"
+    }
+    admissions {
+        BIGINT_UNSIGNED id PK "required"
+        BIGINT_UNSIGNED animal_id FK "required"
+        DATE admitted_on "required"
+        VARCHAR(24) status_code FK "required"
+        VARCHAR(80) location "required"
+        VARCHAR(80) carer_name "required"
+        VARCHAR(1000) reason "required"
+        DATE released_on "nullable"
+        DATETIME(6) created_at "required"
+        DATETIME(6) updated_at "required"
+        BIGINT_UNSIGNED active_animal_id UK "generated; nullable"
+        INT_UNSIGNED version "required"
+    }
+    case_history_entries {
+        BIGINT_UNSIGNED id PK "required"
+        BIGINT_UNSIGNED admission_id FK "required"
+        DATE entry_date "required"
+        VARCHAR(1000) note "required"
+        DATETIME(6) created_at "required"
+        BIGINT_UNSIGNED author_id FK "nullable"
+    }
+    care_tasks {
+        BIGINT_UNSIGNED id PK "required"
+        BIGINT_UNSIGNED admission_id FK "required"
+        VARCHAR(160) title "required"
+        VARCHAR(24) task_type "required"
+        DATETIME due_at "required"
+        DATETIME(6) completed_at "nullable"
+        BIGINT_UNSIGNED completed_by FK "nullable"
+        DATETIME(6) cancelled_at "nullable"
+        BIGINT_UNSIGNED created_by FK "required"
+        INT_UNSIGNED version "required"
+        DATETIME(6) created_at "required"
+        DATETIME(6) updated_at "required"
+    }
+    care_audit_events {
+        BIGINT_UNSIGNED id PK "required"
+        BIGINT_UNSIGNED staff_id FK "required"
+        BIGINT_UNSIGNED admission_id FK "required"
+        VARCHAR(40) action "required"
+        BIGINT_UNSIGNED task_id FK "nullable"
+        DATETIME(6) created_at "required"
+    }
+    animals ||..o{ admissions : "animal_id"
+    care_statuses ||..o{ admissions : "status_code"
+    admissions ||..o{ case_history_entries : "admission_id"
+    admissions ||..o{ care_tasks : "admission_id"
+    staff_users ||..o{ care_tasks : "created_by"
+    staff_users |o..o{ care_tasks : "completed_by"
+    staff_users ||..o{ care_audit_events : "staff_id"
+    admissions ||..o{ care_audit_events : "admission_id"
+    care_tasks |o..o{ care_audit_events : "task_id"
+    staff_users |o..o{ case_history_entries : "author_id"

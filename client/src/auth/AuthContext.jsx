@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { getSession, loginRequest, logoutRequest } from '../lib/api'
+import { changePasswordRequest, getSession, loginRequest, logoutRequest } from '../lib/api'
 import { AuthContext, useAuth } from './useAuth'
 
 export function AuthProvider({ children }) {
@@ -88,7 +88,17 @@ export function AuthProvider({ children }) {
     } finally { mutating.current = false }
   }
 
-  return <AuthContext.Provider value={{ ...session, status, error, refresh, signIn, signOut }}>
+  async function changePassword(currentPassword, password) {
+    mutating.current = true
+    generation.current += 1
+    try {
+      setSession(await changePasswordRequest(currentPassword, password, session.csrfToken))
+      setStatus('ready')
+      setError('')
+    } finally { mutating.current = false }
+  }
+
+  return <AuthContext.Provider value={{ ...session, status, error, refresh, signIn, signOut, changePassword }}>
     {children}
   </AuthContext.Provider>
 }
@@ -102,5 +112,6 @@ export function RequireStaff() {
     <button className="button primary" type="button" onClick={() => auth.refresh()}>Try again</button>
   </section></main>
   if (!auth.user) return <Navigate to="/staff/login" replace state={{ from: location.pathname + location.search + location.hash }} />
+  if (auth.user.mustChangePassword) return <Navigate to="/staff/password" replace />
   return <Outlet />
 }

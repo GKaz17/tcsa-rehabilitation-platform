@@ -2,10 +2,9 @@ import { useRef, useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import { PageHeader, Status } from '../components/ui'
 import { statuses } from '../data/animals'
-import { careDate } from '../data/tasks'
 
 export default function Animals() {
-  const { animals, tasks } = useOutletContext()
+  const { animals, tasks, clock } = useOutletContext()
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('All animals')
   const [species, setSpecies] = useState('All species')
@@ -16,9 +15,8 @@ export default function Animals() {
     `${animal.name} ${animal.species} ${animal.id}`.toLowerCase().includes(query) &&
     (status === 'All animals' || animal.status === status) &&
     (species === 'All species' || animal.species === species))
-  // This local summary counts animals with outstanding medication tasks today,
-  // not prescriptions or courses. Clinical medication records follow the API.
-  const medicationAnimals = new Set(tasks.filter((task) => task.type === 'Medication' && !task.completed).map((task) => task.animalId))
+  // A count of animals with scheduled medication care, not prescriptions.
+  const medicationAnimals = new Set(tasks.filter((task) => task.type === 'Medication' && !task.completed && task.date <= clock.date).map((task) => task.animalId))
   const summary = [
     ['In care', animals.filter((animal) => animal.status !== 'Released').length],
     ['Active medications', animals.filter((animal) => animal.status !== 'Released' && medicationAnimals.has(animal.id)).length],
@@ -51,7 +49,7 @@ export default function Animals() {
       <p className="animal-results" role="status">{filtered.length} {filtered.length === 1 ? 'animal' : 'animals'} found</p>
       {filtered.length ? <div className="animal-card-grid">
         {filtered.map((animal) => {
-          const careDays = Math.max(1, Math.floor((Date.parse(careDate) - Date.parse(animal.admitted)) / 86400000) + 1)
+          const careDays = Math.max(1, Math.floor((Date.parse(clock.date) - Date.parse(animal.admitted)) / 86400000) + 1)
           return <article className="card animal-card" key={animal.id}>
             {/* Decorative placeholder matches the design; source animal photos
                 have not been supplied. Do not pass gallery photos off as cases. */}
@@ -66,7 +64,7 @@ export default function Animals() {
             <Link className="animal-card-open" to={`/dashboard/animals/${animal.id}`} aria-label={`View ${animal.name}'s record`}>→</Link>
           </article>
         })}
-      </div> : <section className="card empty"><h2>No animals match these filters.</h2><p>Try a different name, species or care status.</p><button className="button secondary" onClick={reset}>Clear filters</button></section>}
+      </div> : <section className="card empty"><h2>{animals.length ? 'No animals match these filters.' : 'No animal records yet.'}</h2><p>{animals.length ? 'Try a different name, species or care status.' : 'Add an animal to begin its care record.'}</p>{animals.length ? <button className="button secondary" onClick={reset}>Clear filters</button> : <Link className="button primary" to="/dashboard/animals/new">Add animal</Link>}</section>}
     </>
   )
 }

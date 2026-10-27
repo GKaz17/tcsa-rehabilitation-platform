@@ -8,7 +8,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8080',
+        // The optional target keeps isolated browser tests off the user's database.
+        target: process.env.TCSA_API_TARGET || 'http://127.0.0.1:8080',
         changeOrigin: true,
       },
     },

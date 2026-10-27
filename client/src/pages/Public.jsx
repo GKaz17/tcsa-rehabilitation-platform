@@ -7,7 +7,7 @@ export function NotFound() {
         title="Page not found"
         description="Return to TCSA to find the page you need."
       />
-      <Link className="button accent" to="/">
+      <Link className="button accent" to="/" reloadDocument>
         Return to the public website
       </Link>
     </>

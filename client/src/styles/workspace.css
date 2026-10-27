@@ -405,3 +405,14 @@
     display: grid;
   }
 }
+.care-task-list {
+  list-style: none;
+  padding: 0;
+}
+.care-task-list li {
+  padding-block: 1rem;
+  border-bottom: 1px solid var(--color-border, #dce5d3);
+}
+.care-task-list .form-actions {
+  flex-wrap: wrap;
+}

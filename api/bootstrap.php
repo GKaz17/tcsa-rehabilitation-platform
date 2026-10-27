@@ -9,6 +9,6 @@ set_exception_handler(static function (Throwable $error): never {
     error_log('TCSA API error: ' . get_class($error));
     $unavailable = $error instanceof PDOException || $error instanceof ConfigurationUnavailable;
     json_response($unavailable ? 503 : 500, null, $unavailable
-        ? 'Sign-in is temporarily unavailable. Please try again.' : 'The request could not be completed. Please try again.');
+        ? 'The service is temporarily unavailable. Please try again.' : 'The request could not be completed. Please try again.');
 });
 start_session();

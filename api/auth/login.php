@@ -18,5 +18,7 @@ $staff = authenticate_staff($email, $password);
 if (!$staff) json_response(401, null, 'Email address or password is incorrect.');
 clear_staff_session();
 $_SESSION['staff_id'] = $staff['id'];
+$_SESSION['password_version'] = $staff['passwordVersion'];
+unset($staff['passwordVersion']);
 $_SESSION['signed_in_at'] = $_SESSION['last_seen'] = time();
 json_response(200, ['user' => $staff, 'csrfToken' => $_SESSION['csrf']]);

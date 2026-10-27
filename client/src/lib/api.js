@@ -41,3 +41,13 @@ export const loginRequest = (email, password, csrfToken) => apiRequest('auth/log
 export const logoutRequest = (csrfToken) => apiRequest('auth/logout.php', {
   method: 'POST', headers: { 'X-CSRF-Token': csrfToken },
 })
+
+export const changePasswordRequest = (currentPassword, password, csrfToken) => apiRequest('auth/password.php', {
+  method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+  body: JSON.stringify({ currentPassword, password }),
+})
+export const getWorkspace = (options) => apiRequest('workspace.php', options)
+export const saveCare = (path, body, csrfToken) => apiRequest(path, {
+  method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+  body: JSON.stringify(body),
+})

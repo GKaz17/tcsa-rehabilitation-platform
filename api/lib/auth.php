@@ -50,22 +50,26 @@ function current_staff(bool $touch = false): ?array
         clear_staff_session();
         return null;
     }
-    $query = database()->prepare('SELECT id, email, display_name, is_active FROM staff_users WHERE id = ?');
+    $query = database()->prepare('SELECT id, email, display_name, is_active, must_change_password, password_version FROM staff_users WHERE id = ?');
     $query->execute([$_SESSION['staff_id']]);
     $row = $query->fetch();
-    if (!$row || (int)$row['is_active'] !== 1) {
+    if (!$row || (int)$row['is_active'] !== 1 || (int)$row['password_version'] !== (int)($_SESSION['password_version'] ?? 0)) {
         clear_staff_session();
         return null;
     }
     if ($touch) $_SESSION['last_seen'] = $now;
-    return ['id' => (string)$row['id'], 'email' => $row['email'], 'name' => $row['display_name']];
+    return ['id' => (string)$row['id'], 'email' => $row['email'], 'name' => $row['display_name'],
+        'mustChangePassword' => (bool)$row['must_change_password']];
 }
 
 // Every future animal/task endpoint must call this before reading or writing data.
-function require_staff(): array
+function require_staff(bool $allowPasswordChange = false): array
 {
     $staff = current_staff(true);
     if (!$staff) json_response(401, null, 'Please sign in to continue.');
+    if ($staff['mustChangePassword'] && !$allowPasswordChange) {
+        json_response(428, null, 'Choose your own password before accessing care records.');
+    }
     return $staff;
 }
 
@@ -95,7 +99,7 @@ function authenticate_staff(string $email, string $password): ?array
                 json_response(429, null, 'Too many sign-in attempts. Please try again later.');
             }
         }
-        $query = $pdo->prepare('SELECT id, email, display_name, password_hash, is_active FROM staff_users WHERE email = ? FOR UPDATE');
+        $query = $pdo->prepare('SELECT id, email, display_name, password_hash, is_active, must_change_password, password_version FROM staff_users WHERE email = ? FOR UPDATE');
         $query->execute([$email]);
         $row = $query->fetch();
         $verified = password_verify($password, $row['password_hash'] ?? app_config()['dummy_hash']);
@@ -113,7 +117,8 @@ function authenticate_staff(string $email, string $password): ?array
         $pdo->prepare('DELETE FROM auth_login_limits WHERE bucket_key = ?')->execute([$accountKey]);
         $pdo->prepare('DELETE FROM auth_login_limits WHERE window_start < ?')->execute([$now - 86400]);
         $pdo->commit();
-        return ['id' => (string)$row['id'], 'email' => $row['email'], 'name' => $row['display_name']];
+        return ['id' => (string)$row['id'], 'email' => $row['email'], 'name' => $row['display_name'],
+            'mustChangePassword' => (bool)$row['must_change_password'], 'passwordVersion' => (int)$row['password_version']];
     } catch (Throwable $error) {
         if ($pdo->inTransaction()) $pdo->rollBack();
         throw $error;

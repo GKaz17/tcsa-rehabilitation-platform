@@ -8,6 +8,12 @@ $routes = [
     '/api/auth/login.php' => '/auth/login.php',
     '/api/auth/logout.php' => '/auth/logout.php',
     '/api/auth/me.php' => '/auth/me.php',
+    '/api/auth/password.php' => '/auth/password.php',
+    '/api/workspace.php' => '/workspace.php',
+    '/api/animals.php' => '/animals.php',
+    '/api/tasks.php' => '/tasks.php',
+    '/api/history.php' => '/history.php',
+    '/api/reports.php' => '/reports.php',
 ];
 if (isset($routes[$path])) {
     require __DIR__ . $routes[$path];

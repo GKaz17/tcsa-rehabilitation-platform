@@ -6,7 +6,7 @@ header('X-Robots-Tag: noindex, nofollow');
 
 echo json_encode([
     'success' => true,
-    'data' => ['service' => 'tcsa-api', 'status' => 'ok'],
+    'data' => ['service' => 'tcsa-api', 'status' => 'ok', 'release' => 'care-api-v1'],
     'message' => 'TCSA API is running',
     'errors' => []
 ]);

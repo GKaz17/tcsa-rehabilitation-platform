@@ -31,13 +31,13 @@ export function PublicLayout() {
         Skip to content
       </a>
       <header className={`public-nav${isLanding ? ' landing-container' : ''}`}>
-        <Link className="brand" to="/">
+        <Link className="brand" to="/" reloadDocument={!isLanding}>
           TCSA<span>Rehabilitation & care</span>
         </Link>
         <nav aria-label="Public navigation">
-          <Link to="/#about-us">About</Link>
-          <Link to="/#support-us">Support us</Link>
-          <Link to="/#contact-dirk">Contact</Link>
+          <Link to="/#about-us" reloadDocument={!isLanding}>About</Link>
+          <Link to="/#support-us" reloadDocument={!isLanding}>Support us</Link>
+          <Link to="/#contact-dirk" reloadDocument={!isLanding}>Contact</Link>
         </nav>
         {isLanding ? <NavTurtle /> : null}
       </header>
@@ -52,7 +52,7 @@ export function PublicLayout() {
   )
 }
 
-export function DashboardLayout({ animals, addAnimal, tasks, completeTask }) {
+export function DashboardLayout({ workspace }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const [signOutError, setSignOutError] = useState('')
@@ -103,7 +103,7 @@ export function DashboardLayout({ animals, addAnimal, tasks, completeTask }) {
               {label}
             </NavLink>
           ))}
-          <Link className="back-public" to="/">
+          <Link className="back-public" to="/" reloadDocument>
             ← Public website
           </Link>
         </nav>
@@ -121,7 +121,9 @@ export function DashboardLayout({ animals, addAnimal, tasks, completeTask }) {
         </div>
         {signOutError ? <p className="sign-out-error" role="alert">{signOutError}</p> : null}
         <main id="main">
-          <Outlet context={{ animals, addAnimal, tasks, completeTask }} />
+          {workspace.status === 'loading' ? <section className="card" role="status">Loading care records…</section>
+            : workspace.status === 'error' ? <section className="card"><h1 tabIndex="-1">Unable to load care records</h1><p role="alert">{workspace.error}</p><button className="button primary" onClick={() => workspace.reload()}>Try again</button></section>
+              : <Outlet context={workspace} />}
         </main>
         <footer className="workspace-footer">
           Every record is a step toward recovery.<span>TCSA</span>

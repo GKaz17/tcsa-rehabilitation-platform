@@ -9,7 +9,7 @@ import { randomBytes } from 'node:crypto'
 import { createServer } from 'node:net'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
-const php = 'C:/xampp/php/php.exe'
+const php = process.env.PHP_BINARY || (process.platform === 'win32' ? 'C:/xampp/php/php.exe' : 'php')
 const databaseName = `tcsa_auth_test_${randomBytes(8).toString('hex')}`
 const email = `test.${randomBytes(6).toString('hex')}@example.test`
 const password = randomBytes(24).toString('base64url')
@@ -143,7 +143,8 @@ test('email sign-in rotates the session, survives requests and returns no secret
   const success = await login()
   assert.notEqual(cookie, anonymousCookie)
   assert.notEqual(token, anonymousToken)
-  assert.deepEqual(Object.keys(success.result.data.user).sort(), ['email', 'id', 'name'])
+  assert.deepEqual(Object.keys(success.result.data.user).sort(), ['email', 'id', 'mustChangePassword', 'name'])
+  assert.equal(success.result.data.user.mustChangePassword, false)
   assert.equal(success.result.data.user.email, email)
   assert.equal((await session()).result.data.user.name, 'Staff Tester')
   assert.equal((await request('/api/auth/me.php')).response.status, 200)
@@ -219,4 +220,211 @@ test('per-account and per-IP rate limits block repeated failures, then expire', 
   assert.equal((await request('/api/auth/login.php', { method: 'POST', body: { email: 'another@example.test', password } })).response.status, 429)
   await sql('UPDATE auth_login_limits SET window_start = ?', [Math.floor(Date.now() / 1000) - 901])
   await login()
+})
+
+test('a temporary password cannot access records and its replacement invalidates every older session', async () => {
+  const temporaryEmail = `temporary.${randomBytes(4).toString('hex')}@example.test`
+  const temporaryPassword = randomBytes(8).toString('base64url')
+  const newPassword = randomBytes(24).toString('base64url')
+  await command(['api/bin/create-staff.php', '--temporary'], JSON.stringify({ email: temporaryEmail, name: 'Temporary Tester', password: temporaryPassword }), { APP_CONFIG_FILE: config })
+  cookie = ''; await session()
+  let result = await request('/api/auth/login.php', { method: 'POST', body: { email: temporaryEmail, password: temporaryPassword } })
+  assert.equal(result.response.status, 200)
+  assert.equal(result.result.data.user.mustChangePassword, true)
+  token = result.result.data.csrfToken
+  const firstCookie = cookie, firstToken = token
+  for (const path of ['/api/workspace.php', '/api/reports.php', '/api/auth/me.php']) assert.equal((await request(path)).response.status, 428)
+  assert.equal((await request('/api/animals.php', { method: 'POST', body: {} })).response.status, 428)
+  cookie = ''; await session()
+  result = await request('/api/auth/login.php', { method: 'POST', body: { email: temporaryEmail, password: temporaryPassword } })
+  const otherCookie = cookie
+  cookie = firstCookie; token = firstToken
+  assert.equal((await request('/api/auth/password.php', { method: 'POST', csrf: '', body: { currentPassword: temporaryPassword, password: newPassword } })).response.status, 403)
+  assert.equal((await request('/api/auth/password.php', { method: 'POST', body: { currentPassword: temporaryPassword, password: 'short' } })).response.status, 422)
+  result = await request('/api/auth/password.php', { method: 'POST', body: { currentPassword: temporaryPassword, password: newPassword } })
+  assert.equal(result.response.status, 200)
+  assert.equal(result.result.data.user.mustChangePassword, false)
+  assert.notEqual(cookie, firstCookie)
+  token = result.result.data.csrfToken
+  assert.equal((await request('/api/workspace.php')).response.status, 200)
+  const newCookie = cookie, newToken = token
+  assert.equal((await request('/api/auth/me.php', { withCookie: otherCookie })).response.status, 401)
+  cookie = newCookie; token = newToken
+  await request('/api/auth/logout.php', { method: 'POST' }); await session()
+  assert.equal((await request('/api/auth/login.php', { method: 'POST', body: { email: temporaryEmail, password: temporaryPassword } })).response.status, 401)
+  assert.equal((await request('/api/auth/login.php', { method: 'POST', body: { email: temporaryEmail, password: newPassword } })).response.status, 200)
+  await session(); await login()
+})
+
+let animalId, animalInput, careDate, taskId
+async function workspace() {
+  const result = await request('/api/workspace.php')
+  assert.equal(result.response.status, 200)
+  return result.result.data
+}
+async function animal() { return (await workspace()).animals.find((record) => record.id === animalId) }
+
+test('care endpoints reject anonymous, CSRF, origin, malformed JSON and invalid clinical fields', async () => {
+  const savedCookie = cookie
+  assert.equal((await request('/api/workspace.php', { withCookie: '' })).response.status, 401)
+  cookie = savedCookie
+  careDate = (await workspace()).clock.date
+  animalInput = { name: '=1+1', species: 'Écaille tortoise', location: 'Care room A', carer: 'Staff Tester', admitted: careDate, status: 'In treatment', reason: "Fictional test observation. O'Brien <script>must remain text</script>" }
+  assert.equal((await request('/api/animals.php', { method: 'POST', body: animalInput, csrf: '' })).response.status, 403)
+  assert.equal((await request('/api/animals.php', { method: 'POST', body: animalInput, headers: { Origin: 'https://untrusted.example' } })).response.status, 403)
+  assert.equal((await request('/api/animals.php', { method: 'POST', body: '{' })).response.status, 400)
+  for (const patch of [{ name: '\u2003' }, { admitted: '2026-02-30' }, { status: 'not-a-status' }, { reason: ['not text'] }, { name: 'x'.repeat(81) }]) {
+    assert.equal((await request('/api/animals.php', { method: 'POST', body: { ...animalInput, ...patch } })).response.status, 422)
+  }
+  assert.equal((await sql('SELECT COUNT(*) AS total FROM animals'))[0].total, 0)
+})
+
+test('intake persists Unicode, creates one admission/history entry and survives a new authenticated session', async () => {
+  const result = await request('/api/animals.php', { method: 'POST', body: animalInput })
+  assert.equal(result.response.status, 201)
+  animalId = result.result.data.id
+  assert.match(animalId, /^TCSA-[A-F0-9]{12}$/)
+  const saved = await animal()
+  assert.equal(saved.name, animalInput.name)
+  assert.equal(saved.species, animalInput.species)
+  assert.equal(saved.history[0].note, animalInput.reason)
+  assert.equal(saved.history[0].author, 'Staff Tester')
+  const oldCookie = cookie
+  cookie = ''; await session(); await login()
+  assert.equal((await animal()).id, animalId)
+  assert.notEqual(cookie, oldCookie)
+  assert.equal((await sql('SELECT COUNT(*) AS total FROM admissions'))[0].total, 1)
+})
+
+test('edits use optimistic concurrency and invalid edits roll back instead of partially changing records', async () => {
+  const saved = await animal()
+  const body = { ...animalInput, id: animalId, admissionId: saved.admissionId, action: 'update', version: saved.version, location: 'Enclosure 02' }
+  assert.equal((await request('/api/animals.php', { method: 'POST', body })).response.status, 200)
+  assert.equal((await animal()).location, 'Enclosure 02')
+  assert.equal((await request('/api/animals.php', { method: 'POST', body: { ...body, name: 'Stale overwrite' } })).response.status, 409)
+  assert.equal((await animal()).name, animalInput.name)
+  const count = (await sql('SELECT COUNT(*) AS total FROM case_history_entries'))[0].total
+  assert.equal((await request('/api/animals.php', { method: 'POST', body: { ...body, version: (await animal()).version, admitted: '2099-01-01' } })).response.status, 422)
+  assert.equal((await sql('SELECT COUNT(*) AS total FROM case_history_entries'))[0].total, count)
+})
+
+test('case notes retain authorship and reject entries outside admission dates or stale versions', async () => {
+  let saved = await animal()
+  const previousDate = new Date(Date.parse(careDate + 'T12:00:00Z') - 86400000).toISOString().slice(0, 10)
+  assert.equal((await request('/api/history.php', { method: 'POST', body: { animalId, admissionId: saved.admissionId, version: saved.version, date: previousDate, note: 'Too early' } })).response.status, 422)
+  const body = { animalId, admissionId: saved.admissionId, version: saved.version, date: careDate, note: 'Appetite reviewed; this is a fictional integration test.' }
+  assert.equal((await request('/api/history.php', { method: 'POST', body })).response.status, 201)
+  assert.equal((await request('/api/history.php', { method: 'POST', body })).response.status, 409)
+  saved = await animal()
+  assert.equal(saved.history.filter((entry) => entry.note === body.note).length, 1)
+  assert.equal(saved.history.find((entry) => entry.note === body.note).author, 'Staff Tester')
+})
+
+test('care tasks persist schedule/timezone, completion, reopening and conflict checks', async () => {
+  const task = { animalId, admissionId: (await animal()).admissionId, title: 'Review feeding log', type: 'Feeding', date: careDate, time: '09:00' }
+  assert.equal((await request('/api/tasks.php', { method: 'POST', body: { ...task, time: '25:90' } })).response.status, 422)
+  assert.equal((await request('/api/tasks.php', { method: 'POST', body: { ...task, type: 'invalid' } })).response.status, 422)
+  assert.equal((await request('/api/tasks.php', { method: 'POST', body: task })).response.status, 201)
+  let saved = (await workspace()).tasks.find((entry) => entry.title === task.title)
+  taskId = saved.id
+  assert.equal(saved.time, '09:00')
+  assert.equal((await sql('SELECT due_at FROM care_tasks WHERE id = ?', [taskId]))[0].due_at, careDate + ' 07:00:00')
+  const completion = { action: 'complete', id: taskId, animalId, admissionId: saved.admissionId, version: saved.version, completed: true }
+  assert.equal((await request('/api/tasks.php', { method: 'POST', body: completion })).response.status, 200)
+  assert.equal((await request('/api/tasks.php', { method: 'POST', body: completion })).response.status, 409)
+  saved = (await workspace()).tasks.find((entry) => entry.id === taskId)
+  assert.equal(saved.completed, true)
+  assert.equal(saved.completedAt, careDate)
+  let stored = (await sql('SELECT completed_at, completed_by, cancelled_at FROM care_tasks WHERE id = ?', [taskId]))[0]
+  assert.notEqual(stored.completed_at, null)
+  assert.notEqual(stored.completed_by, null)
+  assert.equal(stored.cancelled_at, null)
+  // The database rejects either half of a completion without the other half.
+  await assert.rejects(sql('UPDATE care_tasks SET completed_by = NULL WHERE id = ?', [taskId]), /chk_task_completion/)
+  await assert.rejects(sql('UPDATE care_tasks SET completed_at = NULL WHERE id = ?', [taskId]), /chk_task_completion/)
+  const auditCount = (await sql('SELECT COUNT(*) AS total FROM care_audit_events'))[0].total
+  assert.equal((await request('/api/tasks.php', { method: 'POST', body: { ...completion, action: 'cancel', version: saved.version } })).response.status, 409)
+  assert.deepEqual((await sql('SELECT completed_at, completed_by, cancelled_at FROM care_tasks WHERE id = ?', [taskId]))[0], stored)
+  assert.equal((await sql('SELECT COUNT(*) AS total FROM care_audit_events'))[0].total, auditCount)
+  assert.equal((await request('/api/tasks.php', { method: 'POST', body: { ...completion, version: saved.version, completed: false } })).response.status, 200)
+  saved = (await workspace()).tasks.find((entry) => entry.id === taskId)
+  assert.equal(saved.completed, false)
+  stored = (await sql('SELECT completed_at, completed_by FROM care_tasks WHERE id = ?', [taskId]))[0]
+  assert.equal(stored.completed_at, null)
+  assert.equal(stored.completed_by, null)
+  assert.equal((await request('/api/tasks.php', { method: 'POST', body: { ...completion, version: saved.version } })).response.status, 200)
+})
+
+test('only outstanding tasks can be cancelled and cancelled tasks cannot be completed', async () => {
+  const task = { animalId, admissionId: (await animal()).admissionId, title: 'Cancelled test review', type: 'Other', date: careDate, time: '10:00' }
+  assert.equal((await request('/api/tasks.php', { method: 'POST', body: task })).response.status, 201)
+  const saved = (await workspace()).tasks.find((entry) => entry.title === task.title)
+  const cancellation = { action: 'cancel', id: saved.id, animalId, admissionId: saved.admissionId, version: saved.version }
+  assert.equal((await request('/api/tasks.php', { method: 'POST', body: cancellation })).response.status, 200)
+  const stored = (await sql('SELECT completed_at, completed_by, cancelled_at, version FROM care_tasks WHERE id = ?', [saved.id]))[0]
+  assert.equal(stored.completed_at, null)
+  assert.equal(stored.completed_by, null)
+  assert.notEqual(stored.cancelled_at, null)
+  assert.ok(!(await workspace()).tasks.some((entry) => entry.id === saved.id))
+  const auditCount = (await sql('SELECT COUNT(*) AS total FROM care_audit_events'))[0].total
+  assert.equal((await request('/api/tasks.php', { method: 'POST', body: { ...cancellation, action: 'complete', version: stored.version, completed: true } })).response.status, 404)
+  assert.equal((await request('/api/tasks.php', { method: 'POST', body: { ...cancellation, version: stored.version } })).response.status, 404)
+  assert.deepEqual((await sql('SELECT completed_at, completed_by, cancelled_at, version FROM care_tasks WHERE id = ?', [saved.id]))[0], stored)
+  assert.equal((await sql('SELECT COUNT(*) AS total FROM care_audit_events'))[0].total, auditCount)
+})
+
+test('reports aggregate database records over real date ranges and CSV cells cannot execute spreadsheet formulas', async () => {
+  const query = `?from=${careDate}&to=${careDate}`
+  const result = await request('/api/reports.php' + query)
+  assert.equal(result.response.status, 200)
+  assert.equal(result.result.data.admissions, 1)
+  assert.equal(result.result.data.statuses['In treatment'], 1)
+  assert.equal(result.result.data.completedTasks, 1)
+  const csv = await fetch(base + '/api/reports.php' + query + '&format=csv', { headers: { Cookie: cookie } })
+  assert.equal(csv.status, 200)
+  assert.match(csv.headers.get('content-disposition'), /attachment/)
+  assert.match(csv.headers.get('x-robots-tag'), /noindex/)
+  const text = await csv.text()
+  assert.ok(text.includes("'=1+1"))
+  assert.ok(text.includes('Écaille tortoise'))
+  assert.equal((await request('/api/reports.php?from=2026-02-30')).response.status, 422)
+  assert.equal((await request('/api/reports.php?from=2026-02-02&to=2026-01-01')).response.status, 422)
+})
+
+test('release cancels pending care and readmission retains the old history without creating duplicate active stays', async () => {
+  assert.equal((await request('/api/tasks.php', { method: 'POST', body: { animalId, admissionId: (await animal()).admissionId, title: 'Pending review', type: 'Assessment', date: careDate, time: '17:00' } })).response.status, 201)
+  let saved = await animal()
+  assert.equal((await request('/api/animals.php', { method: 'POST', body: { ...saved, action: 'update', status: 'Released', releasedOn: careDate } })).response.status, 200)
+  assert.equal((await workspace()).tasks.length, 0)
+  assert.equal((await sql('SELECT COUNT(*) AS total FROM admissions WHERE status_code <> ?', ['released']))[0].total, 0)
+  assert.equal((await sql('SELECT COUNT(*) AS total FROM care_tasks WHERE completed_at IS NULL AND cancelled_at IS NULL'))[0].total, 0)
+  assert.equal((await request('/api/tasks.php', { method: 'POST', body: { animalId, admissionId: (await animal()).admissionId, title: 'Too late', type: 'Other', date: careDate, time: '17:00' } })).response.status, 409)
+  saved = await animal()
+  const previousAdmission = saved.admissionId, previousHistory = saved.history.length
+  assert.equal((await request('/api/animals.php', { method: 'POST', body: { ...saved, action: 'update', status: 'In treatment' } })).response.status, 409)
+  assert.equal((await request('/api/animals.php', { method: 'POST', body: { ...saved, action: 'readmit', status: 'In treatment', reason: 'Fictional readmission check.', admitted: careDate } })).response.status, 200)
+  saved = await animal()
+  assert.notEqual(saved.admissionId, previousAdmission)
+  assert.equal(saved.history.length, previousHistory + 1)
+  assert.ok(saved.history.some((entry) => entry.admissionId === previousAdmission))
+  assert.equal((await request('/api/animals.php', { method: 'POST', body: { ...saved, action: 'update', admissionId: previousAdmission, version: saved.version, name: 'Old admission overwrite' } })).response.status, 409)
+  assert.equal((await request('/api/animals.php', { method: 'POST', body: { ...saved, action: 'readmit' } })).response.status, 409)
+  assert.equal((await sql('SELECT COUNT(*) AS total FROM admissions WHERE status_code <> ?', ['released']))[0].total, 1)
+  await assert.rejects(sql('INSERT INTO admissions (animal_id, admitted_on, status_code, location, carer_name, reason) SELECT animal_id, admitted_on, status_code, location, carer_name, reason FROM admissions WHERE id = ?', [saved.admissionId]), /uq_admissions_one_active/)
+  assert.equal((await sql('SELECT COUNT(*) AS total FROM admissions WHERE status_code <> ?', ['released']))[0].total, 1)
+  assert.ok((await sql('SELECT COUNT(*) AS total FROM care_audit_events'))[0].total >= 8)
+})
+
+test('an earlier admission task cannot be changed or audited against a later admission', async () => {
+  const current = await animal()
+  const before = (await sql('SELECT admission_id, completed_at, completed_by, cancelled_at, version FROM care_tasks WHERE id = ?', [taskId]))[0]
+  assert.notEqual(String(before.admission_id), current.admissionId)
+  const auditCount = (await sql('SELECT COUNT(*) AS total FROM care_audit_events'))[0].total
+  for (const action of ['complete', 'cancel']) {
+    const body = { action, id: taskId, animalId, admissionId: current.admissionId, version: before.version, completed: false }
+    assert.equal((await request('/api/tasks.php', { method: 'POST', body })).response.status, 404)
+  }
+  assert.deepEqual((await sql('SELECT admission_id, completed_at, completed_by, cancelled_at, version FROM care_tasks WHERE id = ?', [taskId]))[0], before)
+  assert.equal((await sql('SELECT COUNT(*) AS total FROM care_audit_events'))[0].total, auditCount)
+  assert.equal((await sql('SELECT COUNT(*) AS total FROM care_audit_events e JOIN care_tasks t ON t.id = e.task_id WHERE e.admission_id <> t.admission_id'))[0].total, 0)
 })

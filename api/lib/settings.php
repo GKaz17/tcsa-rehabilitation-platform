@@ -20,6 +20,7 @@ function app_config(): array
         'database' => $value('DB_NAME'), 'user' => $value('DB_USER'), 'password' => $value('DB_PASSWORD'),
         'session_path' => $value('SESSION_PATH', dirname(__DIR__) . '/storage/sessions'),
         'session_name' => $value('SESSION_NAME', 'TCSA_SESSION'),
+        'ssl_ca' => $value('DB_SSL_CA', $value('APP_ENV', 'production') === 'production' ? '/etc/ssl/certs/ca-certificates.crt' : ''),
     ];
     if (!in_array($next['env'], ['local', 'production'], true) || !$next['origins'] ||
         !preg_match('/^[a-f0-9]{64}$/', $next['key']) ||
@@ -37,11 +38,25 @@ function database(): PDO
     $config = app_config();
     $pdo = new PDO('mysql:host=' . $config['host'] . ';port=' . $config['port'] .
         ';dbname=' . $config['database'] . ';charset=utf8mb4', $config['user'], $config['password'],
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT => 3]);
+        database_options($config));
+    if ($config['env'] !== 'local') {
+        $tls = $pdo->query("SHOW SESSION STATUS LIKE 'Ssl_cipher'")->fetch();
+        if (!$tls || ($tls['Value'] ?? '') === '') throw new ConfigurationUnavailable();
+    }
     $pdo->exec("SET time_zone = '+00:00'");
     $pdo->exec("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
     return $pdo;
+}
+function database_options(array $config): array
+{
+    $options = [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT => 3];
+    if ($config['ssl_ca'] !== '') {
+        if (!is_readable($config['ssl_ca'])) throw new ConfigurationUnavailable();
+        $options[PDO::MYSQL_ATTR_SSL_CA] = $config['ssl_ca'];
+        $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+    } elseif ($config['env'] !== 'local') throw new ConfigurationUnavailable();
+    return $options;
 }
 function password_algorithm(): string
 {

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require dirname(__DIR__) . '/lib/settings.php';
+require dirname(__DIR__) . '/lib/migrations.php';
 $options = getopt('', ['database:', 'config:']);
 $name = $options['database'] ?? 'tcsa_auth_local';
 $configPath = $options['config'] ?? dirname(__DIR__, 2) . '/.env.local';
@@ -27,6 +28,7 @@ try {
     foreach (explode(';', $schema) as $statement) {
         if (trim($statement) !== '') $admin->exec($statement);
     }
+    apply_care_migrations($admin);
     $account = $admin->quote($user) . "@'localhost'";
     $admin->exec("CREATE USER $account IDENTIFIED BY " . $admin->quote($password));
     $admin->exec("GRANT SELECT, INSERT, UPDATE, DELETE ON `$name`.* TO $account");
