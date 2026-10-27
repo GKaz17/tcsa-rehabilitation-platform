@@ -5,11 +5,24 @@ import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { loadEnv } from 'vite'
 import { seoConfig } from '../src/lib/seo.js'
+import { analyticsMarkup } from '../build/analytics.js'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const config = seoConfig({ ...loadEnv('production', root, 'VITE_'),
   ...Object.fromEntries(['VITE_SITE_URL', 'VITE_ALLOW_INDEXING'].filter((key) => process.env[key] !== undefined).map((key) => [key, process.env[key]])) })
 const html = await readFile(resolve(root, 'dist/index.html'), 'utf8')
+
+test('the GA4 tag is included once only on the configured production public page', async () => {
+  const settings = { ...loadEnv('production', root, 'VITE_'),
+    ...(process.env.VITE_GA4_ID !== undefined ? { VITE_GA4_ID: process.env.VITE_GA4_ID } : {}) }
+  const expected = analyticsMarkup(settings, config)
+  assert.equal((html.match(/id="tcsa-public-analytics"/g) || []).length, expected ? 1 : 0)
+  if (expected) assert.ok(html.includes(expected))
+  for (const filename of ['staff.html', '404.html']) {
+    const document = await readFile(resolve(root, 'dist', filename), 'utf8')
+    assert.doesNotMatch(document, /tcsa-public-analytics|googletagmanager\.com|G-Z0XK8ERT14/)
+  }
+})
 
 test('the actual build contains the public journey and its images without running JavaScript', async () => {
   assert.match(html, /data-prerendered="true"/)

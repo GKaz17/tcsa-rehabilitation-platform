@@ -85,7 +85,7 @@ export default function Landing() {
           {/* The invisible 44px target is centred on the tail in this crop.
               The logo itself remains inert; the larger target aids touch use.
               This navigation shortcut is not an authentication mechanism. */}
-          <Link className="turtle-tail-entry" to="/staff/login" aria-label="Staff sign in" />
+          <Link className="turtle-tail-entry" to="/staff/login" reloadDocument aria-label="Staff sign in" />
         </div>
       </section>
     </div>

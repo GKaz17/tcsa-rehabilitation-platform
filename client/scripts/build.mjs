@@ -5,17 +5,21 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { headMarkup, robotsText, seoConfig, sitemapXml } from '../src/lib/seo.js'
+import { analyticsMarkup } from '../build/analytics.js'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const config = seoConfig({ ...loadEnv('production', root, 'VITE_'),
-  ...Object.fromEntries(['VITE_SITE_URL', 'VITE_ALLOW_INDEXING'].filter((key) => process.env[key] !== undefined).map((key) => [key, process.env[key]])) })
+const settings = { ...loadEnv('production', root, 'VITE_'),
+  ...Object.fromEntries(['VITE_SITE_URL', 'VITE_ALLOW_INDEXING', 'VITE_GA4_ID'].filter((key) => process.env[key] !== undefined).map((key) => [key, process.env[key]])) }
+const config = seoConfig(settings)
+const analytics = analyticsMarkup(settings, config)
 await build({ root })
 const template = await readFile(resolve(root, 'dist/index.html'), 'utf8')
 const server = await createServer({ root, mode: 'production', server: { middlewareMode: true, hmr: false } })
 try {
   const { default: PublicDocument } = await server.ssrLoadModule('/src/entry-public.jsx')
   const content = renderToString(createElement(PublicDocument))
-  await writeFile(resolve(root, 'dist/index.html'), template.replace('<div id="root"></div>', `<div id="root" data-prerendered="true">${content}</div>`))
+  const publicTemplate = template.replace('<head>', `<head>\n    ${analytics}`)
+  await writeFile(resolve(root, 'dist/index.html'), publicTemplate.replace('<div id="root"></div>', `<div id="root" data-prerendered="true">${content}</div>`))
 } finally { await server.close() }
 
 const privateTemplate = template.replace(/<!-- seo:start -->[\s\S]*?<!-- seo:end -->/, `<!-- seo:start -->\n    ${headMarkup('/staff/login', config)}\n    <!-- seo:end -->`)
