@@ -14,3 +14,28 @@ vendor/
 api/storage/
 .DS_Store
 Thumbs.db
+
+# Local working material and release archives
+/outputs/
+/evidence/
+/work/
+/backups/
+*.zip
+
+# Python cache and provider-local state
+__pycache__/
+*.py[cod]
+.aws/
+.azure/
+*-state.json
+*.tfstate
+*.tfstate.*
+
+# Private signing keys and deployment credentials
+*.key
+*.pfx
+*.p12
+*.publishsettings
+*.PublishSettings
+*.publishprofile
+*.publishProfile
