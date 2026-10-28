@@ -1,12 +1,35 @@
-# Local staff sign-in checkpoint
+# Staff sign-in and local setup
 
-The React form now calls PHP and checks server sessions before opening staff routes. Authentication uses the local XAMPP MySQL service. The public landing page and its footer entry remain unchanged.
+The React form calls PHP and checks server sessions before opening staff routes.
+Local development uses XAMPP MySQL; each deployed version uses its own hosted
+MySQL database. The public landing page keeps its footer entry to staff sign-in.
 
-## Current status
+## Current status, 28 October 2026
 
-The three supporting PHP files were restored on 13 October 2026 and passed syntax checks. The local MySQL connection and session endpoint through Vite are working. The isolated sign-in integration suite passed all 10 test groups. Oxlint, the production frontend build and three existing frontend tests passed at the implementation checkpoint. The first staff account requires its owner to finish the private password prompt. Browser verification of a real account's login and logout remains outstanding.
+Staff sign-in and care records now use PHP and MySQL on both Azure and AWS.
+The AWS acceptance checkpoint on 26 October includes the owner's confirmation
+of sign-in, required password change, and an animal record and case note
+surviving refresh and removal of temporary setup access. Each host has separate
+staff credentials and a separate database.
 
-The animal schema has not been applied. Animal records and tasks remain fictional in-memory fixtures. No deployment has been made.
+The 27 October source checkpoint passed 20 isolated backend integration groups.
+Its completed-task cancellation correction still awaits hosted release.
+See [backend implementation](BACKEND_IMPLEMENTATION.md) and the
+[ER diagram](DATABASE_ER_DIAGRAM.md) for the current care flows and schema.
+The first implementation checkpoint below is retained as dated history.
+
+## Initial local checkpoint, 13 October 2026
+
+The three supporting PHP files were restored on 13 October 2026 and passed
+syntax checks. The local MySQL connection and session endpoint through Vite
+worked. The isolated sign-in integration suite passed all 10 test groups.
+Oxlint, the production frontend build and three frontend tests also passed.
+At that point, the first account's private password setup and real-account
+browser login/logout verification were still outstanding.
+
+At that initial checkpoint the animal schema had not been applied, care records
+were in-memory fixtures and no deployment had been made. Those statements do
+not describe the current version.
 
 ## Flow and boundaries
 
@@ -28,7 +51,11 @@ Start MySQL in XAMPP. From the repository root, the one-time initializer is:
 C:\xampp\php\php.exe api/bin/setup-local.php
 ```
 
-It refuses to overwrite an existing configuration or database. The current local database already exists; do not rerun the initializer as a routine startup step. Generated connection settings stay in ignored `.env.local`. No secret belongs in a `VITE_` variable.
+It refuses to overwrite an existing configuration or database. Do not rerun it
+for routine startup if local configuration already exists. New setup applies
+migrations 001–003 and creates a restricted application account. Generated
+connection settings stay in ignored `.env.local`. No secret belongs in a
+`VITE_` variable.
 
 Staff account provisioning is a local CLI action, not a public registration endpoint:
 
@@ -55,4 +82,8 @@ The local staff form is `http://127.0.0.1:5173/staff/login`. Vite forwards `/api
 
 Run `node --test api/tests/auth.integration.mjs` from the repository root with MySQL running. The suite creates its own random test database, limited database user, staff account, configuration and PHP listener. Cleanup targets only those generated resources, never the application's database. It verifies validation, CSRF/origin checks, password failures, cookie rotation, protected requests, hashing, logout, account disabling, expiry, private-file routing and rate limits.
 
-Browser verification of the persistent local flow remains outstanding. Account recovery, roles, animal persistence and production server configuration belong to later reviewed checkpoints. Production authentication requires HTTPS and Secure cookies; the PHP development server is for local use only.
+Production authentication requires HTTPS and Secure cookies; the PHP development
+server is for local use only. Self-service recovery and staff role management
+remain future work. Historical test counts above belong to the dated initial
+checkpoint; the current care suite and hosted acceptance are described under
+Current status.
