@@ -21,7 +21,7 @@ At repository root run `node deployment/package.mjs` then
 `node --test deployment/package.test.mjs`. The output `dist/azure` must be empty
 before packaging; it is ignored. Only deploy that directory. Never upload the
 whole checkout. No local configuration, provisioning tools, sessions, database
-files or agent instructions belong in the artifact.
+files or personal working notes belong in the artifact.
 
 ## Azure settings before the first release
 

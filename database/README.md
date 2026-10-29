@@ -1,26 +1,41 @@
-# Database boundary
+# TCSA database
 
-MySQL will be accessed by PHP only, using validated input and prepared statements.
-Phase 1 added no database connection or credentials.
+PHP accesses MySQL through validated input, prepared statements and transactions.
+The schema separates animal identity from rehabilitation admissions, notes and
+care tasks. Staff accounts and audit records identify who performed care actions.
 
-Stage one now proposes the animal-management schema:
+## Migrations
 
-- `drafts/001_animal_management.sql`: four tables for care statuses, animal identity,
-  admissions and case history. Only technical status lookup values are inserted.
-- `tests/schema-valid.sql`: fictional acceptance data for isolated checks only.
-- `tests/verify-schema.ps1`: PowerShell 7 check using XAMPP's engine in bootstrap
-  mode with a fresh temporary data directory and no credentials or network listener.
-- `../docs/DATABASE_STAGE_1.md`: field mapping, relationships, integrity rules,
-  planned PHP response contract and remaining decisions.
+Apply these in order using the supplied setup or migration tools:
 
-Run `pwsh -NoProfile -File database/tests/verify-schema.ps1` from the repository root.
-If Windows blocks the temporary engine's file operations, start MySQL in XAMPP
-and run the same command with `-UseRunningMySql`. This explicit option uses the
-local setup account to create one randomly named disposable test database and
-remove it afterward. It never applies the draft to the application database.
-Custom setup credentials use `TCSA_SETUP_USER` and `TCSA_SETUP_PASSWORD` environment
-variables, never command arguments. The PHP test adapter is CLI-only.
-The draft has not been applied to an application database. Review it before the
-connection/API stage. Do not import test fixtures as real animal records.
+1. migrations/001_staff_signin.sql: staff users, login attempt limits and migration versions.
+2. migrations/002_animal_management.sql: care statuses, animals, admissions and case history.
+3. migrations/003_care_workflows.sql: care tasks, audit events, staff authorship and edit versions.
 
-The sign-in checkpoint adds migrations/001_staff_signin.sql with staff accounts, login rate-limit buckets and a migration record. Only that migration has been applied to the local authentication database. The animal schema remains an unapplied draft. See ../docs/STAFF_SIGNIN.md.
+The resulting schema has nine tables, 60 columns and ten foreign keys. The
+[ER diagram](../docs/DATABASE_ER_DIAGRAM.md) explains the relationships and
+integrity rules. See [backend implementation](../docs/BACKEND_IMPLEMENTATION.md)
+for API behaviour and [staff setup](../docs/STAFF_SIGNIN.md) for local installation.
+
+Azure and AWS each use their own MySQL database. Local development uses XAMPP's
+MariaDB engine. Database administrator access is used for setup; normal requests
+use a separate restricted account.
+
+## Isolated schema checks
+
+drafts/001_animal_management.sql preserves an earlier animal schema proposal.
+It is not the current migration entry point. The schema checks use that draft
+with fictional acceptance data in a disposable database.
+
+From the project root, run:
+
+    pwsh -NoProfile -File database/tests/verify-schema.ps1
+
+If Windows blocks the temporary engine, start MySQL in XAMPP and use
+-UseRunningMySql. That option creates and removes a randomly named test
+database. Custom setup credentials use TCSA_SETUP_USER and
+TCSA_SETUP_PASSWORD environment variables, never command arguments.
+
+The broader sign-in and care integration suite is
+node --test api/tests/auth.integration.mjs. Do not import test fixtures into
+an application database or commit database exports and credentials.

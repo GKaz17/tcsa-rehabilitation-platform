@@ -21,7 +21,7 @@ test('AWS context includes only the approved runtime and a noindex public build'
   const files = await inventory(root)
   const expected = ['.dockerignore', 'Dockerfile', 'aws/nginx.conf', 'aws/php.ini', 'aws/php-fpm.conf', 'aws/supervisord.conf', 'aws/rds-ca.pem', 'api/bootstrap.php', 'api/health.php', 'api/auth/session.php', 'api/auth/login.php', 'api/auth/logout.php', 'api/auth/me.php', 'api/auth/password.php', 'api/workspace.php', 'api/animals.php', 'api/tasks.php', 'api/history.php', 'api/reports.php', 'api/lib/care.php', 'api/lib/settings.php', 'api/lib/http.php', 'api/lib/auth.php']
   assert.deepEqual(files.filter(path => !path.startsWith('public/')), expected.sort())
-  for (const path of files.filter(path => path !== '.dockerignore')) assert.doesNotMatch(path, /(^|\/)(?:\.[^/]+|AGENTS\.md|node_modules|storage|bin|tests|src)(\/|$)|\.(?:map|sql|ps1)$/i)
+  for (const path of files.filter(path => path !== '.dockerignore')) assert.doesNotMatch(path, /(^|\/)(?:\.[^/]+|node_modules|storage|bin|tests|src)(\/|$)|\.(?:md|map|sql|ps1)$/i)
   const html = await readFile(resolve(root, 'public/index.html'), 'utf8')
   assert.match(html, /data-prerendered="true"/)
   assert.match(html, /name="robots" content="noindex, nofollow"/)

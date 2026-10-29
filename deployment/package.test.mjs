@@ -25,7 +25,7 @@ test('release includes compiled public content and only the approved runtime fil
     'api/workspace.php', 'api/animals.php', 'api/tasks.php', 'api/history.php', 'api/reports.php',
     'deployment/azure-nginx.conf', 'deployment/azure-startup.sh', 'index.php']
   assert.deepEqual(files.filter((path) => !path.startsWith('public/')), runtime.sort())
-  for (const path of files) assert.doesNotMatch(path, /(^|\/)(?:\.[^/]+|AGENTS\.md|node_modules|storage|bin|tests|src)(\/|$)|\.(?:map|sql|ps1)$/i)
+  for (const path of files) assert.doesNotMatch(path, /(^|\/)(?:\.[^/]+|node_modules|storage|bin|tests|src)(\/|$)|\.(?:md|map|sql|ps1)$/i)
   const html = await readFile(resolve(root, 'public/index.html'), 'utf8')
   assert.match(html, /data-prerendered="true"/)
   assert.match(await readFile(resolve(root, 'public/staff.html'), 'utf8'), /noindex, nofollow/)
