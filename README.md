@@ -1,4 +1,26 @@
+<p align="center"><img src="client/public/images/tcsa-logo.jpg" width="150" alt="Tortoise Conservation South Africa logo" /></p>
+
 # TCSA Rehabilitation Platform
+
+**Conservation website and staff care platform · React, PHP and MySQL**<br>
+**Development and portfolio author:** Gedeon Kazadi · DV200, Semester 2
+
+## Contents
+
+- [About the project](#about-the-project)
+- [Live websites](#live-websites)
+- [Design reference](#design-reference)
+- [Features](#features)
+- [Development process](#development-process)
+- [Run locally](#run-locally)
+- [Deployment](#deployment)
+- [Checks](#checks)
+- [Challenges and solutions](#challenges-and-solutions)
+- [Final outcome](#final-outcome)
+- [Conclusion](#conclusion)
+- [Credits and use terms](#credits-and-use-terms)
+
+## About the project
 
 A responsive website and staff care system for Tortoise Conservation South
 Africa. The public website introduces TCSA's conservation work and ways to
@@ -48,6 +70,12 @@ Care records are stored in MySQL and remain available after refresh or a later
 sign-in. Animal identity is separate from each admission, with at most one
 active admission per animal. Clinical history is retained rather than deleted.
 
+![TCSA public conservation website](docs/images/public-website.png)
+
+![TCSA staff care reports](docs/images/staff-reports.jpg)
+
+Screenshots show local development checkpoints and demonstration care records. They illustrate the interface; they do not establish which later changes are deployed to each host.
+
 ## Technologies
 
 | Area | Technologies |
@@ -71,6 +99,46 @@ active admission per animal. Clinical history is retained rather than deleted.
 React sends same-origin HTTP requests to PHP. PHP checks the session and input,
 queries MySQL, and returns JSON for React to display. Database credentials stay
 on the server and are never included in the frontend build.
+
+
+## Development process
+
+### Architecture and user flow
+
+```mermaid
+flowchart LR
+  P[Public visitor: learn, support, contact] --> R[React website]
+  S[Staff: sign in] --> R
+  R --> A[Same-origin PHP API]
+  A --> V[Session, CSRF and input checks]
+  V --> D[(MySQL)]
+  D --> C[Animals, admissions, tasks and history]
+  C --> A
+  A --> T[Today view and reports]
+```
+
+Public visitors follow the supplied conservation journey. Authenticated staff admit an animal, add case notes, schedule and complete care tasks, then review reports or record release/readmission. Animal identity and admission history are separate so a later admission does not overwrite earlier care.
+
+See the [ER diagram](docs/DATABASE_ER_DIAGRAM.md), [rendered database diagram](docs/diagrams/tcsa-er-diagram.png) and [backend implementation](docs/BACKEND_IMPLEMENTATION.md) for the data relationships and endpoint decisions.
+
+### Code decision: atomic care changes
+
+From [`api/lib/care.php`](api/lib/care.php):
+
+```php
+function care_transaction(callable $action): mixed
+{
+    $pdo = database();
+    $pdo->beginTransaction();
+    try { $value = $action($pdo); $pdo->commit(); return $value; }
+    catch (Throwable $error) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        throw $error;
+    }
+}
+```
+
+Related care writes succeed together or roll back together. Record-version checks separately detect a stale edit and return a conflict instead of silently overwriting another staff member’s work. This supports the admission and task integrity rules documented in the backend guide.
 
 ## Run locally
 
@@ -172,3 +240,25 @@ nine tables, 60 columns and ten foreign keys in migrations 001-003.
 Keep environment settings, passwords, database exports, sessions, generated
 builds and release archives out of Git. The repository contains source code,
 tests, migrations, dependency lockfiles and blank example configuration.
+## Final outcome
+
+The [Azure application](https://tcsa-rehabilitation-gkaz17-hebyf0hnd4cze8cb.southafricanorth-01.azurewebsites.net/) and [AWS application](https://tc-5b0e1ccaba9046b1b3cc6359db12c230.ecs.eu-north-1.on.aws/) provide the public website and authenticated staff workspace. Their databases are independent. Local changes must be packaged and verified on each host before they can be described as deployed.
+
+**Demo video:** the required 5–8 minute portfolio recording has not yet been linked.
+
+## Conclusion
+
+The main outcome is a joined public and staff system with persistent care records and two cloud deployments. Separating animal identity from admissions made releases and readmissions easier to model without losing clinical history. The deployment work also exposed practical issues with permissions, sessions, environment settings and cross-platform packaging, described above.
+
+My contribution covers application development, staff dashboard redesign, integration, database implementation and deployment. The public visual direction comes from the credited Group 11 UX200 team. Next steps are the improvements listed above, followed by further staff workflow testing and verified releases.
+
+## Credits and use terms
+
+- **Development and contact:** [Gedeon Kazadi](https://github.com/GKaz17) · [21100471@virtualwindow.co.za](mailto:21100471@virtualwindow.co.za)
+- **Public website design:** Group 11 UX200 design team, [supplied TCSA design](https://www.figma.com/design/HIUzMJNOBMJiqloYjQW4oe/Group-11---TCSA?node-id=2907-20712). This design is not presented as my original UX work.
+- **Staff interface design:** [TCSA Dashboard Redesign — Gedeon Kazadi](https://www.figma.com/design/rAYI0hpuL3R3WQlJ9gpVuc/).
+- **Identity and content:** Tortoise Conservation South Africa. Some photographs and logos are cropped from the supplied design preview; original source exports and full image attribution remain outstanding.
+- **Libraries and runtime:** [React](https://react.dev/), [React Router](https://reactrouter.com/), [Vite](https://vite.dev/), [PHP](https://www.php.net/), MySQL/MariaDB and Oxlint. Deployment uses Azure, AWS, Docker, Nginx and PHP-FPM; package and platform rights remain with their owners.
+- **Fonts:** Poppins, Londrina Solid and Instrument Sans; the bundled Open Font Licence files are in `client/public/fonts`.
+- **AI assistance:** OpenAI ChatGPT/Codex assisted with implementation, debugging, checks and documentation. Design ownership and the limits of available assets are credited separately above.
+- **Use terms:** Academic and portfolio implementation. No repository-wide open-source licence has been granted. TCSA identity/content, supplied designs, photographs, fonts and third-party software retain their respective rights and licences.
