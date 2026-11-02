@@ -254,7 +254,7 @@ My contribution covers application development, staff dashboard redesign, integr
 
 ## Credits and use terms
 
-- **Development and contact:** [Gedeon Kazadi](https://github.com/GKaz17) · [21100471@virtualwindow.co.za](mailto:21100471@virtualwindow.co.za)
+- **Development and contact:** [Gedeon Kazadi](https://github.com/GKaz17) · [gedeonkazadi017@yahoo.com](mailto:gedeonkazadi017@yahoo.com)
 - **Public website design:** Group 11 UX200 design team, [supplied TCSA design](https://www.figma.com/design/HIUzMJNOBMJiqloYjQW4oe/Group-11---TCSA?node-id=2907-20712). This design is not presented as my original UX work.
 - **Staff interface design:** [TCSA Dashboard Redesign — Gedeon Kazadi](https://www.figma.com/design/rAYI0hpuL3R3WQlJ9gpVuc/).
 - **Identity and content:** Tortoise Conservation South Africa. Some photographs and logos are cropped from the supplied design preview; original source exports and full image attribution remain outstanding.
