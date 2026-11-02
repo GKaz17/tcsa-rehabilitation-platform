@@ -260,4 +260,5 @@ My contribution covers application development, staff dashboard redesign, integr
 - **Identity and content:** Tortoise Conservation South Africa. Some photographs and logos are cropped from the supplied design preview; original source exports and full image attribution remain outstanding.
 - **Libraries and runtime:** [React](https://react.dev/), [React Router](https://reactrouter.com/), [Vite](https://vite.dev/), [PHP](https://www.php.net/), MySQL/MariaDB and Oxlint. Deployment uses Azure, AWS, Docker, Nginx and PHP-FPM; package and platform rights remain with their owners.
 - **Fonts:** Poppins, Londrina Solid and Instrument Sans; the bundled Open Font Licence files are in `client/public/fonts`.
+- **AI assistance:** ChatGPT and Codex supported research into unfamiliar technical approaches, implementation, debugging and documentation.
 - **Use terms:** Academic and portfolio implementation. No repository-wide open-source licence has been granted. TCSA identity/content, supplied designs, photographs, fonts and third-party software retain their respective rights and licences.
