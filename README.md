@@ -244,7 +244,7 @@ tests, migrations, dependency lockfiles and blank example configuration.
 
 The [Azure application](https://tcsa-rehabilitation-gkaz17-hebyf0hnd4cze8cb.southafricanorth-01.azurewebsites.net/) and [AWS application](https://tc-5b0e1ccaba9046b1b3cc6359db12c230.ecs.eu-north-1.on.aws/) provide the public website and authenticated staff workspace. Their databases are independent. Local changes must be packaged and verified on each host before they can be described as deployed.
 
-**Demo video:** the required 5–8 minute portfolio recording has not yet been linked.
+**Demo video:** [Watch the TCSA demonstration](https://drive.google.com/file/d/1iWGKH-pp_MI97KXfilvNnrDNazfP8QAU/view). Public link access was checked without sign-in on 2 November 2026. Runtime: **17:16**; this full recording exceeds the brief’s 5–8 minute limit, so a shorter portfolio cut remains outstanding.
 
 ## Conclusion
 
